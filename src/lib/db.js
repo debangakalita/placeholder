@@ -33,6 +33,7 @@ function run(mode, fn) {
 }
 
 export const putPlace = (place) => run('readwrite', (s) => s.put(place))
+export const deletePlace = (id) => run('readwrite', (s) => s.delete(id))
 export const getAllPlaces = () =>
   run('readonly', (s) => s.getAll()).then((list) => (list || []).sort((a, b) => b.createdAt - a.createdAt))
 

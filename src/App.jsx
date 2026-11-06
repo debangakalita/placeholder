@@ -13,7 +13,7 @@ export default function App() {
   // GPS starts the moment the app opens (rule from CLAUDE.md),
   // so a fix is usually ready by the time a photo is taken.
   const location = useLocation()
-  const { places, add } = usePlaces()
+  const { places, add, update, remove } = usePlaces()
 
   // After a shutter press: 'preview' (edit details), then 'saved' (the pin animation).
   const [step, setStep] = useState(null)
@@ -55,7 +55,7 @@ export default function App() {
   }, [])
 
   const onTouchStart = (e) => {
-    if (!swipeOn) return
+    if (!swipeOn || e.target.closest?.('[data-noswipe]')) return
     const t = e.touches[0]
     touch.current = { y: t.clientY, x: t.clientX, time: e.timeStamp, vertical: null }
   }
@@ -116,7 +116,14 @@ export default function App() {
         aria-hidden={!placesOpen}
         inert={!placesOpen ? true : undefined}
       >
-        <PlacesScreen places={places} onClose={() => setPlacesOpen(false)} />
+        <PlacesScreen
+          places={places}
+          active={placesOpen}
+          coords={location.coords}
+          onClose={() => setPlacesOpen(false)}
+          onUpdate={update}
+          onRemove={remove}
+        />
       </div>
 
       {step === 'preview' && shot && (
