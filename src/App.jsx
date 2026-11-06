@@ -11,7 +11,7 @@ export default function App() {
   // so a fix is usually ready by the time a photo is taken.
   const location = useLocation()
 
-  // Places slides down over the camera. The camera stays running underneath,
+  // Places slides up from the bottom over the camera. The camera stays running underneath,
   // so coming back to it is instant.
   const [placesOpen, setPlacesOpen] = useState(false)
   const [drag, setDrag] = useState(null) // px the finger has moved, while dragging
@@ -32,9 +32,9 @@ export default function App() {
       start.vertical = Math.abs(dy) > Math.abs(dx)
     }
     if (!start.vertical) return
-    // Camera: only a downward drag counts. Places: only an upward drag.
-    if (!placesOpen && dy > 0) setDrag(dy)
-    else if (placesOpen && dy < 0) setDrag(dy)
+    // Camera: only an upward drag counts. Places: only a downward drag.
+    if (!placesOpen && dy < 0) setDrag(dy)
+    else if (placesOpen && dy > 0) setDrag(dy)
   }
 
   const onTouchEnd = (e) => {
@@ -49,10 +49,10 @@ export default function App() {
     setDrag(null)
   }
 
-  // Where the Places panel sits: fully above the screen when closed, at 0 when open.
+  // Where the Places panel sits: fully below the screen when closed, at 0 when open.
   let offset
-  if (drag !== null) offset = placesOpen ? `${Math.min(0, drag)}px` : `calc(-100% + ${Math.max(0, drag)}px)`
-  else offset = placesOpen ? '0px' : '-100%'
+  if (drag !== null) offset = placesOpen ? `${Math.max(0, drag)}px` : `calc(100% + ${Math.min(0, drag)}px)`
+  else offset = placesOpen ? '0px' : '100%'
 
   return (
     <div

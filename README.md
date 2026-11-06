@@ -14,7 +14,7 @@ The camera only works on a secure (https) link, so test on phones with the Verce
 
 ## Progress
 
-- [x] Step 1: Camera screen (live camera, GPS on open, Pin only and shutter, installable, swipe down to Places)
+- [x] Step 1: Camera screen (live camera, GPS on open, Pin only and shutter, installable, swipe up to Places)
 - [ ] Step 2: Preview + save on the phone (offline)
 - [ ] Step 3: Places viewer, flip card, map
 - [ ] Step 4: Cloud (Supabase) and sign-in
