@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { deletePlace, getAllPlaces, keepStorage, newId, putPlace } from '../lib/db.js'
+import { clearPlaces, getAllPlaces, keepStorage, newId, putPlace } from '../lib/db.js'
 import { areaName } from '../lib/geo.js'
 
 export function usePlaces() {
   const [places, setPlaces] = useState([])
   const [ready, setReady] = useState(false)
+  const [edits, setEdits] = useState(0) // goes up on every local change, so backup knows to run
   const placesRef = useRef([])
   const filling = useRef(false)
 
@@ -13,29 +14,39 @@ export function usePlaces() {
     setPlaces(list)
   }, [])
 
+  // Places marked deleted are kept only until the cloud hears about it; never show them.
   const reload = useCallback(
-    () => getAllPlaces().then((list) => { commit(list); return list }).catch(() => []),
+    () => getAllPlaces()
+      .then((list) => { const shown = list.filter((p) => !p.deleted); commit(shown); return shown })
+      .catch(() => []),
     [commit]
   )
+
+  const save = useCallback(async (place) => {
+    await putPlace(place)
+    setEdits((n) => n + 1)
+  }, [])
 
   // Change some fields of a place. The screen updates at once; the phone's storage follows.
   const update = useCallback(
     async (id, patch) => {
       const cur = placesRef.current.find((p) => p.id === id)
       if (!cur) return
-      const next = { ...cur, ...patch, synced: false }
+      const next = { ...cur, ...patch, updatedAt: Date.now(), synced: false }
       commit(placesRef.current.map((p) => (p.id === id ? next : p)))
-      await putPlace(next)
+      await save(next)
     },
-    [commit]
+    [commit, save]
   )
 
   const remove = useCallback(
     async (id) => {
+      const cur = placesRef.current.find((p) => p.id === id)
+      if (!cur) return
       commit(placesRef.current.filter((p) => p.id !== id))
-      await deletePlace(id)
+      await save({ ...cur, photo: null, deleted: true, synced: false, updatedAt: Date.now() })
     },
-    [commit]
+    [commit, save]
   )
 
   // Places saved offline have no area name yet; fill them in one by one when online.
@@ -63,11 +74,14 @@ export function usePlaces() {
 
   const add = useCallback(
     async (data) => {
+      const now = Date.now()
       const place = {
         id: newId(),
-        createdAt: Date.now(),
+        createdAt: now,
+        updatedAt: now,
         kind: 'photo',
         photo: null,
+        photoPath: null,
         title: '',
         note: '',
         tags: [],
@@ -76,14 +90,21 @@ export function usePlaces() {
         accuracy: null,
         area: null,
         synced: false,
+        deleted: false,
         ...data,
       }
       commit([place, ...placesRef.current])
-      await putPlace(place)
+      await save(place)
       return place
     },
-    [commit]
+    [commit, save]
   )
 
-  return { places, ready, add, update, remove }
+  // Used when signing out: this phone forgets everything (the cloud keeps it).
+  const forgetAll = useCallback(async () => {
+    await clearPlaces()
+    commit([])
+  }, [commit])
+
+  return { places, ready, edits, add, update, remove, reload, forgetAll }
 }

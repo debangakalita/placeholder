@@ -1,6 +1,7 @@
 // Saves places on the phone itself (IndexedDB), so nothing needs the internet.
-// A place: { id, createdAt, kind: 'photo' | 'pin', photo: Blob | null, title, note, tags[],
-//            lat, lng, accuracy, area: string | null, synced: false }
+// A place: { id, createdAt, updatedAt, kind: 'photo' | 'pin', photo: Blob | null, photoPath,
+//            title, note, tags[], lat, lng, accuracy, area: string | null,
+//            synced: boolean (backed up to the cloud), deleted: boolean (waiting to be removed from the cloud) }
 const DB_NAME = 'placeholder'
 const STORE = 'places'
 
@@ -33,6 +34,8 @@ function run(mode, fn) {
 }
 
 export const putPlace = (place) => run('readwrite', (s) => s.put(place))
+export const getPlace = (id) => run('readonly', (s) => s.get(id))
+export const clearPlaces = () => run('readwrite', (s) => s.clear())
 export const deletePlace = (id) => run('readwrite', (s) => s.delete(id))
 export const getAllPlaces = () =>
   run('readonly', (s) => s.getAll()).then((list) => (list || []).sort((a, b) => b.createdAt - a.createdAt))

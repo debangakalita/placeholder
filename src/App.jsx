@@ -5,6 +5,8 @@ import PreviewScreen from './screens/PreviewScreen.jsx'
 import SavedScreen from './screens/SavedScreen.jsx'
 import { useLocation } from './hooks/useLocation.js'
 import { usePlaces } from './hooks/usePlaces.js'
+import { useAuth } from './hooks/useAuth.js'
+import { useSync } from './hooks/useSync.js'
 
 const OPEN_DISTANCE = 90 // px of drag needed to switch screens
 const FLICK_SPEED = 0.5 // px per ms; a quick flick also switches
@@ -13,7 +15,18 @@ export default function App() {
   // GPS starts the moment the app opens (rule from CLAUDE.md),
   // so a fix is usually ready by the time a photo is taken.
   const location = useLocation()
-  const { places, add, update, remove } = usePlaces()
+  const { places, edits, add, update, remove, reload, forgetAll } = usePlaces()
+  const auth = useAuth()
+  const sync = useSync({ user: auth.user, edits, reload })
+
+  const account = {
+    user: auth.user,
+    checked: auth.checked,
+    status: sync.status,
+    waiting: sync.waiting,
+    signIn: auth.signInWithGoogleToken,
+    signOut: async () => { await auth.signOut(); await forgetAll() },
+  }
 
   // After a shutter press: 'preview' (edit details), then 'saved' (the pin animation).
   const [step, setStep] = useState(null)
@@ -120,6 +133,7 @@ export default function App() {
           places={places}
           active={placesOpen}
           coords={location.coords}
+          account={account}
           onClose={() => setPlacesOpen(false)}
           onUpdate={update}
           onRemove={remove}

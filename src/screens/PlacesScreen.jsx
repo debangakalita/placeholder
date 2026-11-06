@@ -3,10 +3,39 @@ import MapScreen from './MapScreen.jsx'
 import { usePhotoUrls } from '../hooks/usePhotoUrls.js'
 import { areaText, mapsLink, shortDate, titleText } from '../lib/format.js'
 import { PinIcon } from '../components/Icons.jsx'
+import GoogleButton from '../components/GoogleButton.jsx'
+import { GOOGLE_CLIENT_ID } from '../config.js'
+
+const STATUS_TEXT = {
+  syncing: () => 'Backing up…',
+  done: () => 'All places backed up',
+  offline: (n) => (n ? `${n} waiting for internet` : 'Offline, backed up earlier'),
+  error: (n) => (n ? `${n} not backed up yet, will retry` : 'Backup will retry'),
+}
+
+function BackupBar({ account }) {
+  const [error, setError] = useState(null)
+  if (account.user || !GOOGLE_CLIENT_ID || !account.checked) return null
+  return (
+    <div className="backup" data-noswipe>
+      <div className="backup__text">
+        <p className="backup__title">Back up your places</p>
+        <p className="backup__sub">{error || 'Safe even if you lose this phone'}</p>
+      </div>
+      <GoogleButton
+        compact
+        onToken={async (token, nonce) => {
+          setError(null)
+          try { await account.signIn(token, nonce) } catch { setError('Sign-in failed. Try again.') }
+        }}
+      />
+    </div>
+  )
+}
 
 const SWIPE_MIN = 50
 
-export default function PlacesScreen({ places, active, coords, onClose, onUpdate, onRemove }) {
+export default function PlacesScreen({ places, active, coords, account, onClose, onUpdate, onRemove }) {
   const urls = usePhotoUrls(places)
   const [sel, setSel] = useState(0)
   const [flipped, setFlipped] = useState(false)
@@ -101,6 +130,7 @@ export default function PlacesScreen({ places, active, coords, onClose, onUpdate
               strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
         </header>
+        <BackupBar account={account} />
         <div className="empty-card">
           <h1 className="empty-card__title">Your first place goes here</h1>
           <p className="empty-card__body">
@@ -146,12 +176,20 @@ export default function PlacesScreen({ places, active, coords, onClose, onUpdate
         </div>
       </header>
 
+      <BackupBar account={account} />
+
       {menu && (
         <>
           <button type="button" className="menu-scrim" aria-label="Close menu" onClick={() => setMenu(null)} />
           <div className="menu" role="menu">
-            {menu === 'menu' ? (
+            {menu === 'menu' && (
               <>
+                {account.user && (
+                  <p className="menu__status">
+                    <span className={`menu__dot menu__dot--${account.status}`} aria-hidden="true" />
+                    {(STATUS_TEXT[account.status] || (() => 'Backup on'))(account.waiting)}
+                  </p>
+                )}
                 {link ? (
                   <a role="menuitem" className="menu__item" href={link} target="_blank" rel="noopener noreferrer"
                     onClick={() => setMenu(null)}>Open in Maps</a>
@@ -161,8 +199,27 @@ export default function PlacesScreen({ places, active, coords, onClose, onUpdate
                 <button type="button" role="menuitem" className="menu__item menu__item--danger" onClick={() => setMenu('confirm')}>
                   Delete place
                 </button>
+                {account.user && (
+                  <button type="button" role="menuitem" className="menu__item" onClick={() => setMenu('signout')}>
+                    Sign out
+                  </button>
+                )}
               </>
-            ) : (
+            )}
+            {menu === 'signout' && (
+              <>
+                <p className="menu__ask">
+                  {account.waiting
+                    ? `${account.waiting} ${account.waiting === 1 ? 'place is' : 'places are'} not backed up yet. Signing out now removes ${account.waiting === 1 ? 'it' : 'them'} from this phone for good.`
+                    : 'Signing out removes your places from this phone. They stay safe in your backup.'}
+                </p>
+                <button type="button" className="menu__item menu__item--danger" onClick={() => { setMenu(null); account.signOut() }}>
+                  Sign out
+                </button>
+                <button type="button" className="menu__item" onClick={() => setMenu(null)}>Cancel</button>
+              </>
+            )}
+            {menu === 'confirm' && (
               <>
                 <p className="menu__ask">Delete this place? This cannot be undone.</p>
                 <button type="button" className="menu__item menu__item--danger" onClick={() => {
