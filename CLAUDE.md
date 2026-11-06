@@ -15,7 +15,7 @@ This doc is the rulebook for the project. Give it to Claude or Cursor at the sta
 - Opens directly into the camera. No home screen, no cards.
 - Photo flow: take a photo, then the preview shows it with optional title, note and tags, then Save or Retake. Location is saved automatically.
 - Pin only: one button saves the current location without a photo, for awkward places where taking a photo is hard.
-- Swipe down (or tap "24 places" at the top) to open the Places viewer: one big photo at a time with its title and area, and a filmstrip of all places below. Grid and Map views open from small icons in its top bar.
+- Swipe up (or tap the "places" pill at the top) to open the Places viewer: one big photo at a time with its title and area, and a filmstrip of all places below. Grid and Map views open from small icons in its top bar.
 - Details are always optional. Add them on the preview, or later by tapping a photo in Places: the card flips and you edit title, note and tags on its back. Tags are suggested from the photo. The "must revisit" flag is parked for later.
 - Saves on the phone first and uploads when the internet is back.
 - Works on Android and iPhone as an installable web app. English only.
@@ -64,7 +64,7 @@ The approved direction is **D** on the [mockup canvas](https://claude.ai/artifac
 
 | Screen | Canvas name | What it does |
 | --- | --- | --- |
-| Camera | D · Camera | Opens here. Pin only on the left, shutter on the right, "24 places" at the top opens Places |
+| Camera | D · Camera | Opens here. Pin only on the left, shutter on the right, "places" pill at the top, or swipe up, opens Places |
 | Preview + details | D · Photo preview + details | The photo, then optional title (big), note and tags (small), then Retake or Save |
 | Saved | D · Saved | Photo shrinks into a pin, then back to camera |
 | Places | D · Places | One big photo with title and area, filmstrip below. Tap the photo to flip it and edit details on the back |

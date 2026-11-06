@@ -24,7 +24,7 @@ function locationLine(location) {
   return 'Still finding your location'
 }
 
-export default function CameraScreen({ location, onOpenPlaces, placesCount = 0 }) {
+export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, onPhoto, onPin }) {
   const { videoRef, status, retry, capture } = useCamera()
   const [toast, setToast] = useState(null)
   const [flash, setFlash] = useState(false)
@@ -38,9 +38,14 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0 }
     toastTimer.current = setTimeout(() => setToast(null), 2500)
   }
 
-  const onPin = () => {
+  const handlePin = async () => {
     navigator.vibrate?.(15)
-    showToast({ kind: 'pin', title: 'Pinned', body: locationLine(location) })
+    if (location.status !== 'ready') {
+      showToast({ title: 'Finding your location', body: locationLine(location) })
+      return
+    }
+    await onPin()
+    showToast({ title: 'Pinned', body: 'Add a photo or note later' })
   }
 
   const onShutter = async () => {
@@ -48,9 +53,8 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0 }
     navigator.vibrate?.(15)
     setFlash(true)
     setTimeout(() => setFlash(false), 180)
-    // Step 1 only checks the camera works. Saving and the preview screen come in Step 2.
     const photo = await capture()
-    if (photo) showToast({ kind: 'photo', title: 'Photo taken', body: locationLine(location) })
+    if (photo) onPhoto(photo)
   }
 
   const message = CAMERA_MESSAGES[status]
@@ -98,7 +102,7 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0 }
       </div>
 
       <div className="cam__controls">
-        <button type="button" className="pin-btn" onClick={onPin}>
+        <button type="button" className="pin-btn" onClick={handlePin}>
           <span className="pin-btn__circle"><PinIcon size={22} color="#FFFFFF" withDot /></span>
           Pin only
         </button>

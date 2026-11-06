@@ -61,18 +61,20 @@ export function useCamera() {
     }
   }, [start, stop])
 
-  // Grabs the current frame as a square JPEG (matches the square view).
+  // Grabs the current frame as a square JPEG (matches the square view),
+  // shrunk to at most 1200 px so it stays light on the phone.
   const capture = useCallback(async () => {
     const video = videoRef.current
     if (!video || !video.videoWidth) return null
     const side = Math.min(video.videoWidth, video.videoHeight)
     const sx = (video.videoWidth - side) / 2
     const sy = (video.videoHeight - side) / 2
+    const out = Math.min(side, 1200)
     const canvas = document.createElement('canvas')
-    canvas.width = side
-    canvas.height = side
-    canvas.getContext('2d').drawImage(video, sx, sy, side, side, 0, 0, side, side)
-    return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9))
+    canvas.width = out
+    canvas.height = out
+    canvas.getContext('2d').drawImage(video, sx, sy, side, side, 0, 0, out, out)
+    return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85))
   }, [])
 
   return { videoRef, status, retry: start, capture }

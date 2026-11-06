@@ -1,7 +1,10 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import CameraScreen from './screens/CameraScreen.jsx'
 import PlacesScreen from './screens/PlacesScreen.jsx'
+import PreviewScreen from './screens/PreviewScreen.jsx'
+import SavedScreen from './screens/SavedScreen.jsx'
 import { useLocation } from './hooks/useLocation.js'
+import { usePlaces } from './hooks/usePlaces.js'
 
 const OPEN_DISTANCE = 90 // px of drag needed to switch screens
 const FLICK_SPEED = 0.5 // px per ms; a quick flick also switches
@@ -10,6 +13,12 @@ export default function App() {
   // GPS starts the moment the app opens (rule from CLAUDE.md),
   // so a fix is usually ready by the time a photo is taken.
   const location = useLocation()
+  const { places, add } = usePlaces()
+
+  // After a shutter press: 'preview' (edit details), then 'saved' (the pin animation).
+  const [step, setStep] = useState(null)
+  const [shot, setShot] = useState(null) // { photo, coords } while previewing
+  const [savedPlace, setSavedPlace] = useState(null)
 
   // Places slides up from the bottom over the camera. The camera stays running underneath,
   // so coming back to it is instant.
@@ -17,7 +26,36 @@ export default function App() {
   const [drag, setDrag] = useState(null) // px the finger has moved, while dragging
   const touch = useRef(null)
 
+  const swipeOn = step === null
+
+  const onPhoto = (photo) => {
+    setShot({ photo, coords: location.coords }) // lock the location at the moment of the shot
+    setStep('preview')
+  }
+
+  const onPin = async () => {
+    const c = location.coords
+    await add({ kind: 'pin', lat: c.lat, lng: c.lng, accuracy: c.accuracy })
+  }
+
+  const onSave = async ({ title, note, tags, area }) => {
+    const c = shot.coords
+    const place = await add({
+      kind: 'photo', photo: shot.photo, title, note, tags, area,
+      lat: c?.lat ?? null, lng: c?.lng ?? null, accuracy: c?.accuracy ?? null,
+    })
+    setSavedPlace(place)
+    setStep('saved')
+  }
+
+  const backToCamera = useCallback(() => {
+    setStep(null)
+    setShot(null)
+    setSavedPlace(null)
+  }, [])
+
   const onTouchStart = (e) => {
+    if (!swipeOn) return
     const t = e.touches[0]
     touch.current = { y: t.clientY, x: t.clientX, time: e.timeStamp, vertical: null }
   }
@@ -62,8 +100,14 @@ export default function App() {
       onTouchEnd={onTouchEnd}
       onTouchCancel={() => { touch.current = null; setDrag(null) }}
     >
-      <div aria-hidden={placesOpen} inert={placesOpen ? true : undefined}>
-        <CameraScreen location={location} placesCount={0} onOpenPlaces={() => setPlacesOpen(true)} />
+      <div aria-hidden={placesOpen} inert={placesOpen || step !== null ? true : undefined}>
+        <CameraScreen
+          location={location}
+          placesCount={places.length}
+          onOpenPlaces={() => setPlacesOpen(true)}
+          onPhoto={onPhoto}
+          onPin={onPin}
+        />
       </div>
 
       <div
@@ -72,8 +116,19 @@ export default function App() {
         aria-hidden={!placesOpen}
         inert={!placesOpen ? true : undefined}
       >
-        <PlacesScreen onClose={() => setPlacesOpen(false)} />
+        <PlacesScreen places={places} onClose={() => setPlacesOpen(false)} />
       </div>
+
+      {step === 'preview' && shot && (
+        <div className="overlay">
+          <PreviewScreen photo={shot.photo} coords={shot.coords} onRetake={backToCamera} onSave={onSave} />
+        </div>
+      )}
+      {step === 'saved' && (
+        <div className="overlay">
+          <SavedScreen place={savedPlace} onDone={backToCamera} />
+        </div>
+      )}
     </div>
   )
 }
