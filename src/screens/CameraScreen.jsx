@@ -119,7 +119,6 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, 
       </div>
 
       <button type="button" className="swipe-hint" onClick={onOpenPlaces} aria-label="Open places">
-        <span className="swipe-hint__label">Swipe up for places</span>
         <span className="swipe-hint__bar" aria-hidden="true" />
       </button>
     </main>
