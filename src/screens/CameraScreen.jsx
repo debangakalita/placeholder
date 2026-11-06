@@ -103,14 +103,6 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0 }
           Pin only
         </button>
 
-        <button type="button" className="swipe-hint" onClick={onOpenPlaces} aria-label="Open places">
-          <svg className="swipe-hint__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M6 15l6-6 6 6" />
-          </svg>
-          Places
-        </button>
-
         <button
           type="button"
           className="shutter"
@@ -121,6 +113,11 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0 }
           <span className="shutter__inner" />
         </button>
       </div>
+
+      <button type="button" className="swipe-hint" onClick={onOpenPlaces} aria-label="Open places">
+        <span className="swipe-hint__label">Swipe up for places</span>
+        <span className="swipe-hint__bar" aria-hidden="true" />
+      </button>
     </main>
   )
 }

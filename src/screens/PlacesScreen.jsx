@@ -3,11 +3,6 @@
 export default function PlacesScreen({ onClose }) {
   return (
     <main className="places">
-      <div className="grabber" aria-hidden="true">
-        <span className="grabber__bar" />
-        <span className="grabber__label">Swipe down for camera</span>
-      </div>
-
       <header className="places__top">
         <button type="button" className="icon-btn" onClick={onClose} aria-label="Close, back to camera">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"
