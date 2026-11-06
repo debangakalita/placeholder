@@ -205,3 +205,89 @@ p { margin: 0; }
   .viewfinder__flash, .toast { animation: none; }
   .shutter__inner { transition: none; }
 }
+
+/* Screen switching: Places slides down over the camera */
+.app {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+  touch-action: none; /* we handle vertical swipes ourselves */
+}
+
+.sheet {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  transition: transform 320ms cubic-bezier(.2, .8, .2, 1);
+  will-change: transform;
+}
+.sheet--dragging { transition: none; }
+
+/* Places (nothing saved yet) */
+.places {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding:
+    calc(env(safe-area-inset-top) + 14px)
+    16px
+    calc(env(safe-area-inset-bottom) + 20px);
+}
+
+.places__top { width: 100%; display: flex; align-items: center; }
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-card {
+  margin-top: clamp(16px, 4vh, 36px);
+  width: min(300px, 100%);
+  aspect-ratio: 3 / 4;
+  border-radius: 28px;
+  border: 1.5px dashed #555555;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30px;
+  text-align: center;
+}
+.empty-card__title { margin: 0; font-size: 26px; line-height: 1.1; font-weight: 700; letter-spacing: -0.7px; }
+.empty-card__body { margin-top: 10px; font-size: 15px; line-height: 1.5; color: var(--muted); }
+
+.btn-accent {
+  margin-top: 22px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #000000;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.strip {
+  margin-top: auto;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.strip__slot { width: 46px; height: 62px; border-radius: 10px; border: 1.5px dashed #2E2E2E; }
+.strip__slot--near { border-color: #3A3A3A; }
+.strip__slot--current { width: 60px; height: 80px; border-color: var(--dash); }
+
+.places__hint { margin-top: 8px; font-size: 13px; color: #6A6A6A; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet { transition: none; }
+}

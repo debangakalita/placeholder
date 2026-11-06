@@ -24,7 +24,7 @@ function locationLine(location) {
   return 'Still finding your location'
 }
 
-export default function CameraScreen({ location }) {
+export default function CameraScreen({ location, onOpenPlaces, placesCount = 0 }) {
   const { videoRef, status, retry, capture } = useCamera()
   const [toast, setToast] = useState(null)
   const [flash, setFlash] = useState(false)
@@ -59,8 +59,9 @@ export default function CameraScreen({ location }) {
     <main className="cam">
       <header className="cam__top">
         <span className="wordmark">placeholder</span>
-        <button type="button" className="pill" aria-label="Open places, 0 saved">
-          <span className="dot" aria-hidden="true" />0 places
+        <button type="button" className="pill" onClick={onOpenPlaces}
+          aria-label={`Open places, ${placesCount} saved`}>
+          <span className="dot" aria-hidden="true" />{placesCount} {placesCount === 1 ? 'place' : 'places'}
         </button>
       </header>
 
