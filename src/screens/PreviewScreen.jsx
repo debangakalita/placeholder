@@ -3,14 +3,10 @@ import { PinIcon } from '../components/Icons.jsx'
 import { useKeyboard } from '../hooks/useKeyboard.js'
 import { areaName } from '../lib/geo.js'
 
-// Placeholder suggestions until real ones come from the photo (Step 5).
-const SUGGESTED = ['cafe', 'blue door', 'plants', 'street']
-
 export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
   const [title, setTitle] = useState('')
   const [note, setNote] = useState('')
   const [picked, setPicked] = useState([])
-  const [custom, setCustom] = useState([])
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState('')
   const [area, setArea] = useState(null)
@@ -26,15 +22,13 @@ export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
     return () => { alive = false }
   }, [coords?.lat, coords?.lng])
 
-  const toggle = (tag) =>
-    setPicked((p) => (p.includes(tag) ? p.filter((t) => t !== tag) : [...p, tag]))
+  const remove = (tag) => setPicked((p) => p.filter((t) => t !== tag))
 
   const addCustom = () => {
     const tag = draft.trim().toLowerCase()
     setDraft('')
     setAdding(false)
     if (!tag) return
-    if (!SUGGESTED.includes(tag) && !custom.includes(tag)) setCustom((c) => [...c, tag])
     setPicked((p) => (p.includes(tag) ? p : [...p, tag]))
   }
 
@@ -45,7 +39,6 @@ export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
   }
 
   const locationText = !coords ? 'No location yet' : area || 'Near your location'
-  const tags = [...SUGGESTED, ...custom]
 
   return (
     <main
@@ -82,14 +75,11 @@ export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
       />
 
       <div className="preview__tags" role="group" aria-label="Tags">
-        {tags.map((tag) => {
-          const on = picked.includes(tag)
-          return (
-            <button key={tag} type="button" className={`tag${on ? ' tag--on' : ''}`} aria-pressed={on} onClick={() => toggle(tag)}>
-              {on ? tag : `+ ${tag}`}
-            </button>
-          )
-        })}
+        {picked.map((tag) => (
+          <button key={tag} type="button" className="tag tag--on" aria-label={`Remove tag ${tag}`} onClick={() => remove(tag)}>
+            {tag}<span aria-hidden="true"> ×</span>
+          </button>
+        ))}
         {adding ? (
           <input
             className="tag tag--input"

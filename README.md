@@ -18,5 +18,5 @@ The camera only works on a secure (https) link, so test on phones with the Verce
 - [x] Step 2: Preview + save on the phone (offline)
 - [x] Step 3: Places viewer, flip card, map
 - [x] Step 4: Cloud (Supabase) and sign-in
-- [ ] Step 5: Auto tags
+- [x] Step 5: Manual tags (auto tags parked)
 - [ ] Step 6: Polish and review
