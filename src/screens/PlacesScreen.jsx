@@ -183,9 +183,9 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
                 </button>
                 {link ? (
                   <a role="menuitem" className="menu__item" href={link} target="_blank" rel="noopener noreferrer"
-                    onClick={() => setMenu(null)}>Open in Maps</a>
+                    onClick={() => setMenu(null)}>Directions</a>
                 ) : (
-                  <span role="menuitem" aria-disabled="true" className="menu__item menu__item--off">Open in Maps</span>
+                  <span role="menuitem" aria-disabled="true" className="menu__item menu__item--off">Directions</span>
                 )}
                 <button type="button" role="menuitem" className="menu__item menu__item--danger" onClick={() => setMenu('confirm')}>
                   Delete place
@@ -319,7 +319,7 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
                       <a className="back__maps" href={link} target="_blank" rel="noopener noreferrer">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
                           strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l14-7-7 14-2-5z" /></svg>
-                        Open in Maps
+                        Directions
                       </a>
                     ) : null}
                   </div>

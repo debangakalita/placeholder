@@ -5,6 +5,7 @@ Read `CLAUDE.md` first. This file is the short state of the build, for starting 
 Live app: https://placeholder-three-flax.vercel.app (Vercel deploys every push to `main`).
 
 ## Done
+- "Open in Maps" renamed to "Directions" (14 Nov), on the card back and in the … menu; the link now opens Google Maps directions to the place instead of a pin.
 - Tap outside flips back (14 Nov): while the Places card shows its back, a tap anywhere outside the card turns it back to the photo; a half-typed tag is saved first and the keyboard closes.
 - Fewer camera prompts on iPhone (14 Nov): iOS never remembers camera permission for Home Screen web apps, and asks again every time getUserMedia is called. We used to stop the camera whenever the app went to the background, so it re-asked on every return. Now on iOS the stream is kept and reused (iOS pauses it itself); Android still stops it (permission is remembered there, saves battery). Result: one prompt per launch on iPhone. Only a phone setting removes that one: Settings → Apps → Safari → Camera → Allow (applies to all sites).
 - Grid view (14 Nov): "…" menu → Grid view opens all places 3 per row (3:4 tiles, 10 px corners, Pin only = dashed tile, current place outlined white, opens scrolled to it). Tap a tile to jump to that place. src/screens/GridScreen.jsx.

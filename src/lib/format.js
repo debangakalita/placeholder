@@ -14,5 +14,6 @@ export function titleText(place) {
 // A link that opens the place in the phone's maps app (or the browser).
 export function mapsLink(place) {
   if (place.lat == null) return null
-  return `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}`
+  // Opens directions from where you are to the place (Google Maps app if installed).
+  return `https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}`
 }
