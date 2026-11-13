@@ -5,6 +5,7 @@ Read `CLAUDE.md` first. This file is the short state of the build, for starting 
 Live app: https://placeholder-three-flax.vercel.app (Vercel deploys every push to `main`).
 
 ## Done
+- Haptics (14 Nov): src/lib/haptics.js. Android uses navigator.vibrate (8/14/22 ms); iPhone (iOS 18+) flips a hidden `<input type=checkbox switch>` for a native tick, since Safari has no vibrate. Used on shutter, Pin only, opening Places, photo page change, filmstrip ticks and thumbnail taps. Filmstrip-drag ticks may not fire on iPhone (Safari may only allow them inside taps) — check on device.
 - Places swipe feels like iPhone Photos (14 Nov, used Emil Kowalski's `gestures` skill): one position value drives both the big photo and the filmstrip (src/hooks/useGallery.js). Finger down = 1:1 tracking with direct style writes (no React re-render per move); release = critically damped spring seeded with finger speed, one photo per swipe; iOS rubber band at the ends; can be caught mid-slide. Filmstrip drag scrubs (big photo swaps instantly), flick glides then settles; thumbnail tap glides there. Reduced motion: settles instantly.
 - Camera screen restyle (14 Nov): tall 3:4 frame centred between top bar and buttons; Pin only and shutter both 84 px (Pin only is a dashed circle, no label); swipe-hint bar removed (swipe up and the places pill still open Places). Photos are now captured 3:4 instead of square.
 - Step 5 (changed): manual tags only. Preview shows "+ tag"; added tags are solid chips, tap to remove. Fake suggestions removed.

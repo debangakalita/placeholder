@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useCamera } from '../hooks/useCamera.js'
 import { PinIcon } from '../components/Icons.jsx'
+import { haptic } from '../lib/haptics.js'
 
 const CAMERA_MESSAGES = {
   denied: {
@@ -39,7 +40,7 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, 
   }
 
   const handlePin = async () => {
-    navigator.vibrate?.(15)
+    haptic('strong')
     if (location.status !== 'ready') {
       showToast({ title: 'Finding your location', body: locationLine(location) })
       return
@@ -50,7 +51,7 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, 
 
   const onShutter = async () => {
     if (status !== 'live') return
-    navigator.vibrate?.(15)
+    haptic('strong')
     setFlash(true)
     setTimeout(() => setFlash(false), 180)
     const photo = await capture()

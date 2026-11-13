@@ -7,6 +7,7 @@ import { useLocation } from './hooks/useLocation.js'
 import { usePlaces } from './hooks/usePlaces.js'
 import { useAuth } from './hooks/useAuth.js'
 import { useSync } from './hooks/useSync.js'
+import { haptic } from './lib/haptics.js'
 
 const OPEN_DISTANCE = 90 // px of drag needed to switch screens
 const FLICK_SPEED = 0.5 // px per ms; a quick flick also switches
@@ -95,7 +96,7 @@ export default function App() {
     const speed = Math.abs(drag) / Math.max(1, e.timeStamp - start.time)
     if (Math.abs(drag) > OPEN_DISTANCE || speed > FLICK_SPEED) {
       setPlacesOpen(!placesOpen)
-      navigator.vibrate?.(10)
+      haptic('medium')
     }
     setDrag(null)
   }

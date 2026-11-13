@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
+import { haptic } from '../lib/haptics.js'
 
 // Photos-app style paging for the Places viewer.
 //
@@ -240,7 +241,7 @@ export function useGallery({ count, enabled, onIndex, deckRef, stripRef }) {
       const base = Math.round(d.start)
       let target = Math.abs(v) > 0.25 ? base + (v < 0 ? 1 : -1) : Math.round(s.pos)
       target = clamp(target, base - 1, base + 1) // one photo per swipe, like Photos
-      if (target !== base && target >= 0 && target < s.count) navigator.vibrate?.(6)
+      if (target !== base && target >= 0 && target < s.count) haptic('medium')
       release(target, (-v * 1000) / s.step, PAGE)
     },
   }
@@ -276,7 +277,7 @@ export function useGallery({ count, enabled, onIndex, deckRef, stripRef }) {
       const before = s.shown
       s.pos = p
       sync()
-      if (s.shown !== before) navigator.vibrate?.(3)
+      if (s.shown !== before) haptic('light')
       paint()
     },
     onPointerUp: (e) => {
@@ -299,6 +300,7 @@ export function useGallery({ count, enabled, onIndex, deckRef, stripRef }) {
 
   const tapThumb = (i) => {
     if (s.stripMoved) return
+    if (i !== s.shown) haptic('light')
     s.mode = 'strip'
     s.tapTarget = i
     sync()
