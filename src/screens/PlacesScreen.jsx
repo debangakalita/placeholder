@@ -33,7 +33,12 @@ function BackupBar({ account }) {
   )
 }
 
-const SWIPE_MIN = 50
+// Swiping the big photo: how far (share of the screen) or how fast (px per ms) counts as "next".
+const SWIPE_SHARE = 0.18
+const FLICK = 0.35
+// Filmstrip geometry: small thumbs are 46 px wide, 8 px apart; the selected one is 60 px.
+const STEP = 54
+const SEL_W = 60
 
 export default function PlacesScreen({ places, active, coords, account, onClose, onUpdate, onRemove }) {
   const urls = usePhotoUrls(places)
@@ -45,8 +50,18 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
   const [draft, setDraft] = useState('')
   const [stripW, setStripW] = useState(390)
   const stripRef = useRef(null)
-  const swipe = useRef(null)
+  // Big photo deck: x follows the finger; anim = slide with easing.
+  const [deck, setDeck] = useState({ x: 0, anim: false })
+  const [deckW, setDeckW] = useState(390)
+  const deckRef = useRef(null)
+  const drag = useRef(null)
   const swiped = useRef(false)
+  const settle = useRef(null)
+  const sliding = useRef(null)
+  // Filmstrip drag: dx while the finger is down, null otherwise.
+  const [stripDx, setStripDx] = useState(null)
+  const stripDrag = useRef(null)
+  const stripMoved = useRef(false)
 
   const index = Math.min(sel, Math.max(0, places.length - 1))
   const place = places[index]
@@ -69,6 +84,17 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
     return () => ro.disconnect()
   }, [places.length > 0])
 
+  useEffect(() => {
+    const el = deckRef.current
+    if (!el) return
+    // One "step" = a photo's width plus a small gap, so photos travel side by side.
+    const measure = () => setDeckW(Math.round(el.clientHeight * 0.75) + 20)
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    measure()
+    return () => ro.disconnect()
+  }, [places.length > 0])
+
   const go = (i) => {
     setSel(Math.max(0, Math.min(places.length - 1, i)))
     setFlipped(false)
@@ -76,23 +102,93 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
     setAddingTag(false)
   }
 
-  const onTouchStart = (e) => {
-    const t = e.touches[0]
-    swipe.current = { x: t.clientX, y: t.clientY }
+  // --- Big photo: drag sideways, the photo follows the finger and the next one slides in.
+  const onDeckDown = (e) => {
+    if (flipped || deck.anim || e.button > 0) return
+    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, lastX: e.clientX, lastT: e.timeStamp, v: 0, axis: null }
     swiped.current = false
   }
-  const onTouchEnd = (e) => {
-    const s = swipe.current
-    swipe.current = null
-    if (!s || flipped) return
-    const t = e.changedTouches[0]
-    const dx = t.clientX - s.x
-    const dy = t.clientY - s.y
-    if (Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      swiped.current = true
-      setTimeout(() => { swiped.current = false }, 400) // only ignore the click that ends the swipe
-      go(index + (dx < 0 ? 1 : -1))
+  const onDeckMove = (e) => {
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    const dx = e.clientX - d.x
+    const dy = e.clientY - d.y
+    if (d.axis === null) {
+      if (Math.abs(dx) + Math.abs(dy) < 8) return
+      d.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
+      if (d.axis === 'x') e.currentTarget.setPointerCapture?.(e.pointerId)
     }
+    if (d.axis !== 'x') return
+    const dt = e.timeStamp - d.lastT
+    if (dt > 0) d.v = (e.clientX - d.lastX) / dt
+    d.lastX = e.clientX
+    d.lastT = e.timeStamp
+    const blocked = (dx > 0 && index === 0) || (dx < 0 && index === places.length - 1)
+    setDeck({ x: blocked ? dx / 3 : dx, anim: false }) // a soft pull at the first and last place
+  }
+  const onDeckUp = (e) => {
+    const d = drag.current
+    drag.current = null
+    if (!d || d.axis !== 'x') return
+    swiped.current = true
+    setTimeout(() => { swiped.current = false }, 350) // ignore only the click that ends the swipe
+    const dx = e.clientX - d.x
+    const dir = dx < 0 ? 1 : -1
+    const far = Math.abs(dx) > deckW * SWIPE_SHARE || (Math.abs(d.v) > FLICK && Math.sign(d.v) === Math.sign(dx))
+    const exists = index + dir >= 0 && index + dir < places.length
+    const next = far && exists ? { x: -dir * deckW, anim: true, dir } : { x: 0, anim: true }
+    if (next.dir) navigator.vibrate?.(6)
+    sliding.current = next
+    setDeck(next)
+    // Backup in case the slide's "finished" event never fires (e.g. it ended where it started).
+    clearTimeout(settle.current)
+    settle.current = setTimeout(() => finishSlide(next), 360)
+  }
+  const finishSlide = (d) => {
+    clearTimeout(settle.current)
+    if (sliding.current !== d) return // already finished
+    sliding.current = null
+    if (d.dir) go(index + d.dir)
+    setDeck({ x: 0, anim: false })
+  }
+  const onDeckEnd = (e) => {
+    if (e.target !== e.currentTarget || !deck.anim) return
+    finishSlide(deck)
+  }
+
+  // --- Filmstrip: drag to scroll; the photo under the middle becomes the big one.
+  const onStripDown = (e) => {
+    if (e.button > 0) return
+    stripDrag.current = { id: e.pointerId, x: e.clientX, start: index, lastX: e.clientX, lastT: e.timeStamp, v: 0, on: false }
+    stripMoved.current = false
+  }
+  const onStripMove = (e) => {
+    const s = stripDrag.current
+    if (!s || s.id !== e.pointerId) return
+    const dx = e.clientX - s.x
+    if (!s.on) {
+      if (Math.abs(dx) < 6) return
+      s.on = true
+      stripMoved.current = true
+      e.currentTarget.setPointerCapture?.(e.pointerId)
+    }
+    const dt = e.timeStamp - s.lastT
+    if (dt > 0) s.v = (e.clientX - s.lastX) / dt
+    s.lastX = e.clientX
+    s.lastT = e.timeStamp
+    const target = Math.max(0, Math.min(places.length - 1, s.start + Math.round(-dx / STEP)))
+    if (target !== index) { go(target); navigator.vibrate?.(4) }
+    setStripDx(dx)
+  }
+  const onStripUp = () => {
+    const s = stripDrag.current
+    stripDrag.current = null
+    if (!s?.on) return
+    // A quick flick keeps going for a few places, then settles.
+    const glide = (stripDx ?? 0) + s.v * 220
+    go(s.start + Math.round(-glide / STEP))
+    setStripDx(null)
+    setTimeout(() => { stripMoved.current = false }, 50)
   }
   const onCardClick = () => {
     if (swiped.current) { swiped.current = false; return }
@@ -119,7 +215,9 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
     x += w + 8
     return { p, i, d, isSel, w, h }
   })
-  const offset = Math.round(stripW / 2 - center)
+  const offset = stripDx !== null && stripDrag.current
+    ? Math.round(stripW / 2 - (stripDrag.current.start * STEP + SEL_W / 2) + stripDx)
+    : Math.round(stripW / 2 - center)
 
   if (!place) {
     return (
@@ -235,88 +333,117 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
         </>
       )}
 
-      <div className="card3d" data-noswipe onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <div className={`card3d__inner${flipped ? ' is-flipped' : ''}`}>
-          <div className="card3d__face" inert={flipped ? true : undefined}>
-            {isPin ? (
-              <button type="button" className="card-pin" onClick={onCardClick}>
-                <PinIcon size={30} color="#FFFFFF" withDot />
-                Pinned spot, tap to add details
-              </button>
-            ) : (
-              <button
-                key={place.id}
-                type="button"
-                className="card-photo"
-                style={{ backgroundImage: `url(${url})` }}
-                onClick={onCardClick}
-                aria-label={`Show details for ${titleText(place)}`}
-              />
-            )}
-          </div>
+      <div
+        className={`deck${flipped ? '' : ' deck--swipe'}${deck.x !== 0 || deck.anim ? ' deck--moving' : ''}`}
+        ref={deckRef}
+        data-noswipe
+        onPointerDown={onDeckDown}
+        onPointerMove={onDeckMove}
+        onPointerUp={onDeckUp}
+        onPointerCancel={onDeckUp}
+      >
+        <div
+          className={`deck__track${deck.anim ? ' deck__track--anim' : ''}`}
+          style={{ transform: `translateX(${deck.x}px)` }}
+          onTransitionEnd={onDeckEnd}
+        >
+          {[-1, 1].map((k) => {
+            const p = places[index + k]
+            if (!p) return null
+            return (
+              <div key={p.id} className="deck__slide deck__slide--side" style={{ transform: `translateX(${k * deckW}px)` }} aria-hidden="true">
+                {urls[p.id] && p.kind !== 'pin'
+                  ? <div className="card-photo" style={{ backgroundImage: `url(${urls[p.id]})` }} />
+                  : <div className="card-pin"><PinIcon size={30} color="#FFFFFF" withDot />Pinned spot, tap to add details</div>}
+              </div>
+            )
+          })}
+          <div key={place.id} className="deck__slide">
+            <div className="card3d">
+              <div className={`card3d__inner${flipped ? ' is-flipped' : ''}`}>
+                <div className="card3d__face" inert={flipped ? true : undefined}>
+                  {isPin ? (
+                    <button type="button" className="card-pin" onClick={onCardClick}>
+                      <PinIcon size={30} color="#FFFFFF" withDot />
+                      Pinned spot, tap to add details
+                    </button>
+                  ) : (
+                    <button
+                      key={place.id}
+                      type="button"
+                      className="card-photo"
+                      style={{ backgroundImage: `url(${url})` }}
+                      onClick={onCardClick}
+                      aria-label={`Show details for ${titleText(place)}`}
+                    />
+                  )}
+                </div>
 
-          <div className="card3d__face card3d__back" inert={!flipped ? true : undefined}>
-            <label className="sr-only" htmlFor="v-title">Title</label>
-            <input
-              id="v-title"
-              className="back__title"
-              type="text"
-              placeholder="Add a title"
-              value={place.title}
-              maxLength={80}
-              onChange={(e) => onUpdate(place.id, { title: e.target.value })}
-            />
-            <p className="back__where">{areaText(place)}, {shortDate(place.createdAt)}</p>
+                <div className="card3d__face card3d__back" inert={!flipped ? true : undefined}>
+                  <label className="sr-only" htmlFor="v-title">Title</label>
+                  <input
+                    id="v-title"
+                    className="back__title"
+                    type="text"
+                    placeholder="Add a title"
+                    value={place.title}
+                    maxLength={80}
+                    onChange={(e) => onUpdate(place.id, { title: e.target.value })}
+                  />
+                  <p className="back__where">{areaText(place)}, {shortDate(place.createdAt)}</p>
 
-            <label className="sr-only" htmlFor="v-note">Note</label>
-            <textarea
-              id="v-note"
-              className="back__note"
-              rows={5}
-              placeholder="Add a note"
-              value={place.note}
-              onChange={(e) => onUpdate(place.id, { note: e.target.value })}
-            />
+                  <label className="sr-only" htmlFor="v-note">Note</label>
+                  <textarea
+                    id="v-note"
+                    className="back__note"
+                    rows={5}
+                    placeholder="Add a note"
+                    value={place.note}
+                    onChange={(e) => onUpdate(place.id, { note: e.target.value })}
+                  />
 
-            <div className="back__tags" role="group" aria-label="Tags">
-              {place.tags.map((tag) => (
-                <button key={tag} type="button" className="chip" aria-label={`Remove tag ${tag}`}
-                  onClick={() => onUpdate(place.id, { tags: place.tags.filter((t) => t !== tag) })}>
-                  {tag}<span aria-hidden="true"> ×</span>
-                </button>
-              ))}
-              {addingTag ? (
-                <input
-                  className="chip chip--input"
-                  autoFocus
-                  value={draft}
-                  maxLength={24}
-                  placeholder="new tag"
-                  aria-label="New tag"
-                  onChange={(e) => setDraft(e.target.value)}
-                  onBlur={addTag}
-                  onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                />
-              ) : (
-                <button type="button" className="chip chip--add" onClick={() => setAddingTag(true)}>+ tag</button>
-              )}
-            </div>
+                  <div className="back__tags" role="group" aria-label="Tags">
+                    {place.tags.map((tag) => (
+                      <button key={tag} type="button" className="chip" aria-label={`Remove tag ${tag}`}
+                        onClick={() => onUpdate(place.id, { tags: place.tags.filter((t) => t !== tag) })}>
+                        {tag}<span aria-hidden="true"> ×</span>
+                      </button>
+                    ))}
+                    {addingTag ? (
+                      <input
+                        className="chip chip--input"
+                        autoFocus
+                        value={draft}
+                        maxLength={24}
+                        placeholder="new tag"
+                        aria-label="New tag"
+                        onChange={(e) => setDraft(e.target.value)}
+                        onBlur={addTag}
+                        onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+                      />
+                    ) : (
+                      <button type="button" className="chip chip--add" onClick={() => setAddingTag(true)}>+ tag</button>
+                    )}
+                  </div>
 
-            <div className="back__bar">
-              <button type="button" className="back__flip" onClick={() => { setFlipped(false); setAddingTag(false) }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                  strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M4 12a8 8 0 1 0 2.5-5.8" /><path d="M4 4v5h5" />
-                </svg>
-                {isPin ? 'Back' : 'Show photo'}
-              </button>
-              {link ? (
-                <a className="back__maps" href={link} target="_blank" rel="noopener noreferrer">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
-                    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l14-7-7 14-2-5z" /></svg>
-                  Open in Maps
-                </a>
-              ) : null}
+                  <div className="back__bar">
+                    <button type="button" className="back__flip" onClick={() => { setFlipped(false); setAddingTag(false) }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                        strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M4 12a8 8 0 1 0 2.5-5.8" /><path d="M4 4v5h5" />
+                      </svg>
+                      {isPin ? 'Back' : 'Show photo'}
+                    </button>
+                    {link ? (
+                      <a className="back__maps" href={link} target="_blank" rel="noopener noreferrer">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
+                          strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l14-7-7 14-2-5z" /></svg>
+                        Open in Maps
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -327,8 +454,18 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
         <p className="viewer__area">{areaText(place)}</p>
       </div>
 
-      <div className="filmstrip" ref={stripRef} role="listbox" aria-label="Your places" data-noswipe>
-        <div className="filmstrip__row" style={{ transform: `translateX(${offset}px)` }}>
+      <div
+        className="filmstrip"
+        ref={stripRef}
+        role="listbox"
+        aria-label="Your places"
+        data-noswipe
+        onPointerDown={onStripDown}
+        onPointerMove={onStripMove}
+        onPointerUp={onStripUp}
+        onPointerCancel={onStripUp}
+      >
+        <div className={`filmstrip__row${stripDx !== null ? ' filmstrip__row--drag' : ''}`} style={{ transform: `translateX(${offset}px)` }}>
           {thumbs.map(({ p, i, d, isSel, w, h }) => (
             <button
               key={p.id}
@@ -343,7 +480,7 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
                 transform: `rotateY(${Math.max(-42, Math.min(42, -d * 16))}deg)`,
                 backgroundImage: urls[p.id] ? `url(${urls[p.id]})` : undefined,
               }}
-              onClick={() => go(i)}
+              onClick={() => { if (!stripMoved.current) go(i) }}
             >
               {!urls[p.id] && <PinIcon size={16} color="#A3A3A3" />}
             </button>

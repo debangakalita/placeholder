@@ -5,6 +5,7 @@ Read `CLAUDE.md` first. This file is the short state of the build, for starting 
 Live app: https://placeholder-three-flax.vercel.app (Vercel deploys every push to `main`).
 
 ## Done
+- Places smooth scrolling (14 Nov): big photo follows the finger and the next one slides in beside it (snaps on ~18% drag or a quick flick, soft pull at first/last); filmstrip is draggable with a short glide, the photo under the middle becomes the big one; thumbnail taps and tap-to-flip unchanged. Pointer events, so it also works with a mouse.
 - Camera screen restyle (14 Nov): tall 3:4 frame centred between top bar and buttons; Pin only and shutter both 84 px (Pin only is a dashed circle, no label); swipe-hint bar removed (swipe up and the places pill still open Places). Photos are now captured 3:4 instead of square.
 - Step 5 (changed): manual tags only. Preview shows "+ tag"; added tags are solid chips, tap to remove. Fake suggestions removed.
 - Step 1: camera screen (opens straight into the back camera, GPS starts on open, Pin only + shutter, swipe up or the small bottom bar or the "places" pill opens Places).

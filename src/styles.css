@@ -455,12 +455,34 @@ p { margin: 0; }
 .menu__ask { padding: 10px 12px 6px; font-size: 14px; line-height: 1.4; color: var(--muted); }
 
 /* The card: photo on the front, details on the back */
-.card3d {
+/* The swipeable row of big photos: full screen width so the next one slides in from the edge */
+.deck {
   --ch: min(400px, 46dvh);
   margin-top: clamp(12px, 4vh, 36px);
-  width: calc(var(--ch) * 0.75);
+  width: calc(100% + 32px);
+  margin-left: -16px;
+  margin-right: -16px;
   height: var(--ch);
   flex: 0 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+.deck--swipe { touch-action: none; }
+.deck__track { position: absolute; inset: 0; will-change: transform; }
+.deck__track--anim { transition: transform 300ms cubic-bezier(.2, .8, .2, 1); }
+.deck__slide {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: calc(var(--ch) * 0.75);
+  height: 100%;
+  margin-left: calc(var(--ch) * -0.375);
+}
+.deck__slide--side { visibility: hidden; }
+.deck--moving .deck__slide--side { visibility: visible; }
+.card3d {
+  width: 100%;
+  height: 100%;
   perspective: 1400px;
 }
 .card3d__inner {
@@ -481,9 +503,7 @@ p { margin: 0; }
   border: none;
   border-radius: 28px;
   background: #1A1A1A center / cover no-repeat;
-  animation: card-in 240ms ease-out;
 }
-@keyframes card-in { from { opacity: 0.4; } }
 .card-pin {
   width: 100%;
   height: 100%;
@@ -607,6 +627,8 @@ p { margin: 0; }
   gap: 8px;
   transition: transform 320ms cubic-bezier(.2, .8, .2, 1);
 }
+.filmstrip { touch-action: none; }
+.filmstrip__row--drag { transition: none; }
 .thumb {
   flex: 0 0 auto;
   padding: 0;
@@ -670,7 +692,7 @@ p { margin: 0; }
 .mpin__label--dim { color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) {
-  .card3d__inner, .filmstrip__row, .thumb { transition: none; }
+  .card3d__inner, .filmstrip__row, .thumb, .deck__track--anim { transition: none; }
   .card-photo { animation: none; }
 }
 
