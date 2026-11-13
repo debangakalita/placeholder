@@ -76,6 +76,20 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
     if (!active) { setFlipped(false); setMenu(null); setMapOpen(false); setGridOpen(false); setAddingTag(false) }
   }, [active])
 
+  // While the card shows its back, a tap anywhere outside the card flips it back to the photo.
+  useEffect(() => {
+    if (!flipped || !active) return
+    const onDown = (e) => {
+      if (e.target.closest?.('.card3d, .menu')) return
+      // Finish whatever was being typed first (saves a half-typed tag, closes the keyboard).
+      if (document.activeElement?.closest?.('.card3d')) document.activeElement.blur()
+      setFlipped(false)
+      setAddingTag(false)
+    }
+    document.addEventListener('pointerdown', onDown, true)
+    return () => document.removeEventListener('pointerdown', onDown, true)
+  }, [flipped, active])
+
   const onCardClick = () => {
     if (gallery.takeClickBlock()) return
     setFlipped(true)
