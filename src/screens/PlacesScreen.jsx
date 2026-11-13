@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import MapScreen from './MapScreen.jsx'
 import { usePhotoUrls } from '../hooks/usePhotoUrls.js'
+import { useGallery } from '../hooks/useGallery.js'
 import { areaText, mapsLink, shortDate, titleText } from '../lib/format.js'
 import { PinIcon } from '../components/Icons.jsx'
 import GoogleButton from '../components/GoogleButton.jsx'
@@ -33,13 +34,6 @@ function BackupBar({ account }) {
   )
 }
 
-// Swiping the big photo: how far (share of the screen) or how fast (px per ms) counts as "next".
-const SWIPE_SHARE = 0.18
-const FLICK = 0.35
-// Filmstrip geometry: small thumbs are 46 px wide, 8 px apart; the selected one is 60 px.
-const STEP = 54
-const SEL_W = 60
-
 export default function PlacesScreen({ places, active, coords, account, onClose, onUpdate, onRemove }) {
   const urls = usePhotoUrls(places)
   const [sel, setSel] = useState(0)
@@ -48,150 +42,39 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
   const [mapOpen, setMapOpen] = useState(false)
   const [addingTag, setAddingTag] = useState(false)
   const [draft, setDraft] = useState('')
-  const [stripW, setStripW] = useState(390)
-  const stripRef = useRef(null)
-  // Big photo deck: x follows the finger; anim = slide with easing.
-  const [deck, setDeck] = useState({ x: 0, anim: false })
-  const [deckW, setDeckW] = useState(390)
   const deckRef = useRef(null)
-  const drag = useRef(null)
-  const swiped = useRef(false)
-  const settle = useRef(null)
-  const sliding = useRef(null)
-  // Filmstrip drag: dx while the finger is down, null otherwise.
-  const [stripDx, setStripDx] = useState(null)
-  const stripDrag = useRef(null)
-  const stripMoved = useRef(false)
+  const stripRef = useRef(null)
 
   const index = Math.min(sel, Math.max(0, places.length - 1))
   const place = places[index]
 
+  // Swiping, the filmstrip and their physics live in useGallery; it tells us which place is showing.
+  const gallery = useGallery({
+    count: places.length,
+    enabled: !flipped,
+    deckRef,
+    stripRef,
+    onIndex: (i) => {
+      setSel(i)
+      setFlipped(false)
+      setMenu(null)
+      setAddingTag(false)
+    },
+  })
+  // After each render, place any photos or thumbnails that just appeared.
+  useLayoutEffect(() => gallery.paint())
+
   // A newly saved place shows first.
   const newestId = places[0]?.id
-  useEffect(() => { setSel(0); setFlipped(false) }, [newestId])
+  useEffect(() => { gallery.jump(0); setSel(0); setFlipped(false) }, [newestId])
 
   // Closing the panel puts everything back to the front of the card.
   useEffect(() => {
     if (!active) { setFlipped(false); setMenu(null); setMapOpen(false); setAddingTag(false) }
   }, [active])
 
-  useEffect(() => {
-    const el = stripRef.current
-    if (!el) return
-    const ro = new ResizeObserver(() => setStripW(el.clientWidth))
-    ro.observe(el)
-    setStripW(el.clientWidth)
-    return () => ro.disconnect()
-  }, [places.length > 0])
-
-  useEffect(() => {
-    const el = deckRef.current
-    if (!el) return
-    // One "step" = a photo's width plus a small gap, so photos travel side by side.
-    const measure = () => setDeckW(Math.round(el.clientHeight * 0.75) + 20)
-    const ro = new ResizeObserver(measure)
-    ro.observe(el)
-    measure()
-    return () => ro.disconnect()
-  }, [places.length > 0])
-
-  const go = (i) => {
-    setSel(Math.max(0, Math.min(places.length - 1, i)))
-    setFlipped(false)
-    setMenu(null)
-    setAddingTag(false)
-  }
-
-  // --- Big photo: drag sideways, the photo follows the finger and the next one slides in.
-  const onDeckDown = (e) => {
-    if (flipped || deck.anim || e.button > 0) return
-    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, lastX: e.clientX, lastT: e.timeStamp, v: 0, axis: null }
-    swiped.current = false
-  }
-  const onDeckMove = (e) => {
-    const d = drag.current
-    if (!d || d.id !== e.pointerId) return
-    const dx = e.clientX - d.x
-    const dy = e.clientY - d.y
-    if (d.axis === null) {
-      if (Math.abs(dx) + Math.abs(dy) < 8) return
-      d.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
-      if (d.axis === 'x') e.currentTarget.setPointerCapture?.(e.pointerId)
-    }
-    if (d.axis !== 'x') return
-    const dt = e.timeStamp - d.lastT
-    if (dt > 0) d.v = (e.clientX - d.lastX) / dt
-    d.lastX = e.clientX
-    d.lastT = e.timeStamp
-    const blocked = (dx > 0 && index === 0) || (dx < 0 && index === places.length - 1)
-    setDeck({ x: blocked ? dx / 3 : dx, anim: false }) // a soft pull at the first and last place
-  }
-  const onDeckUp = (e) => {
-    const d = drag.current
-    drag.current = null
-    if (!d || d.axis !== 'x') return
-    swiped.current = true
-    setTimeout(() => { swiped.current = false }, 350) // ignore only the click that ends the swipe
-    const dx = e.clientX - d.x
-    const dir = dx < 0 ? 1 : -1
-    const far = Math.abs(dx) > deckW * SWIPE_SHARE || (Math.abs(d.v) > FLICK && Math.sign(d.v) === Math.sign(dx))
-    const exists = index + dir >= 0 && index + dir < places.length
-    const next = far && exists ? { x: -dir * deckW, anim: true, dir } : { x: 0, anim: true }
-    if (next.dir) navigator.vibrate?.(6)
-    sliding.current = next
-    setDeck(next)
-    // Backup in case the slide's "finished" event never fires (e.g. it ended where it started).
-    clearTimeout(settle.current)
-    settle.current = setTimeout(() => finishSlide(next), 360)
-  }
-  const finishSlide = (d) => {
-    clearTimeout(settle.current)
-    if (sliding.current !== d) return // already finished
-    sliding.current = null
-    if (d.dir) go(index + d.dir)
-    setDeck({ x: 0, anim: false })
-  }
-  const onDeckEnd = (e) => {
-    if (e.target !== e.currentTarget || !deck.anim) return
-    finishSlide(deck)
-  }
-
-  // --- Filmstrip: drag to scroll; the photo under the middle becomes the big one.
-  const onStripDown = (e) => {
-    if (e.button > 0) return
-    stripDrag.current = { id: e.pointerId, x: e.clientX, start: index, lastX: e.clientX, lastT: e.timeStamp, v: 0, on: false }
-    stripMoved.current = false
-  }
-  const onStripMove = (e) => {
-    const s = stripDrag.current
-    if (!s || s.id !== e.pointerId) return
-    const dx = e.clientX - s.x
-    if (!s.on) {
-      if (Math.abs(dx) < 6) return
-      s.on = true
-      stripMoved.current = true
-      e.currentTarget.setPointerCapture?.(e.pointerId)
-    }
-    const dt = e.timeStamp - s.lastT
-    if (dt > 0) s.v = (e.clientX - s.lastX) / dt
-    s.lastX = e.clientX
-    s.lastT = e.timeStamp
-    const target = Math.max(0, Math.min(places.length - 1, s.start + Math.round(-dx / STEP)))
-    if (target !== index) { go(target); navigator.vibrate?.(4) }
-    setStripDx(dx)
-  }
-  const onStripUp = () => {
-    const s = stripDrag.current
-    stripDrag.current = null
-    if (!s?.on) return
-    // A quick flick keeps going for a few places, then settles.
-    const glide = (stripDx ?? 0) + s.v * 220
-    go(s.start + Math.round(-glide / STEP))
-    setStripDx(null)
-    setTimeout(() => { stripMoved.current = false }, 50)
-  }
   const onCardClick = () => {
-    if (swiped.current) { swiped.current = false; return }
+    if (gallery.takeClickBlock()) return
     setFlipped(true)
     setMenu(null)
   }
@@ -202,22 +85,6 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
     setAddingTag(false)
     if (tag && !place.tags.includes(tag)) onUpdate(place.id, { tags: [...place.tags, tag] })
   }
-
-  // The filmstrip: the selected thumbnail is bigger and sits in the middle.
-  let x = 0
-  let center = 0
-  const thumbs = places.map((p, i) => {
-    const d = i - index
-    const isSel = d === 0
-    const w = isSel ? 60 : 46
-    const h = isSel ? 80 : 62
-    if (isSel) center = x + w / 2
-    x += w + 8
-    return { p, i, d, isSel, w, h }
-  })
-  const offset = stripDx !== null && stripDrag.current
-    ? Math.round(stripW / 2 - (stripDrag.current.start * STEP + SEL_W / 2) + stripDx)
-    : Math.round(stripW / 2 - center)
 
   if (!place) {
     return (
@@ -324,7 +191,7 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
                   const next = Math.min(index, places.length - 2)
                   setMenu(null); setFlipped(false)
                   onRemove(place.id)
-                  setSel(Math.max(0, next))
+                  gallery.jump(Math.max(0, next))
                 }}>Delete</button>
                 <button type="button" className="menu__item" onClick={() => setMenu(null)}>Cancel</button>
               </>
@@ -333,32 +200,20 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
         </>
       )}
 
-      <div
-        className={`deck${flipped ? '' : ' deck--swipe'}${deck.x !== 0 || deck.anim ? ' deck--moving' : ''}`}
-        ref={deckRef}
-        data-noswipe
-        onPointerDown={onDeckDown}
-        onPointerMove={onDeckMove}
-        onPointerUp={onDeckUp}
-        onPointerCancel={onDeckUp}
-      >
-        <div
-          className={`deck__track${deck.anim ? ' deck__track--anim' : ''}`}
-          style={{ transform: `translateX(${deck.x}px)` }}
-          onTransitionEnd={onDeckEnd}
-        >
+      <div className={`deck${flipped ? '' : ' deck--swipe'}`} ref={deckRef} data-noswipe {...gallery.deck}>
+        <div className="deck__track">
           {[-1, 1].map((k) => {
             const p = places[index + k]
             if (!p) return null
             return (
-              <div key={p.id} className="deck__slide deck__slide--side" style={{ transform: `translateX(${k * deckW}px)` }} aria-hidden="true">
+              <div key={p.id} ref={gallery.slideRef(index + k)} className="deck__slide" aria-hidden="true">
                 {urls[p.id] && p.kind !== 'pin'
                   ? <div className="card-photo" style={{ backgroundImage: `url(${urls[p.id]})` }} />
                   : <div className="card-pin"><PinIcon size={30} color="#FFFFFF" withDot />Pinned spot, tap to add details</div>}
               </div>
             )
           })}
-          <div key={place.id} className="deck__slide">
+          <div key={place.id} ref={gallery.slideRef(index)} className="deck__slide">
             <div className="card3d">
               <div className={`card3d__inner${flipped ? ' is-flipped' : ''}`}>
                 <div className="card3d__face" inert={flipped ? true : undefined}>
@@ -460,31 +315,27 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
         role="listbox"
         aria-label="Your places"
         data-noswipe
-        onPointerDown={onStripDown}
-        onPointerMove={onStripMove}
-        onPointerUp={onStripUp}
-        onPointerCancel={onStripUp}
+        {...gallery.strip}
       >
-        <div className={`filmstrip__row${stripDx !== null ? ' filmstrip__row--drag' : ''}`} style={{ transform: `translateX(${offset}px)` }}>
-          {thumbs.map(({ p, i, d, isSel, w, h }) => (
-            <button
-              key={p.id}
-              type="button"
-              role="option"
-              aria-selected={isSel}
-              aria-label={titleText(p)}
-              className={`thumb${isSel ? ' thumb--sel' : ''}${urls[p.id] ? '' : ' thumb--pin'}`}
-              style={{
-                width: w, height: h,
-                opacity: Math.max(0.35, 1 - Math.abs(d) * 0.18),
-                transform: `rotateY(${Math.max(-42, Math.min(42, -d * 16))}deg)`,
-                backgroundImage: urls[p.id] ? `url(${urls[p.id]})` : undefined,
-              }}
-              onClick={() => { if (!stripMoved.current) go(i) }}
-            >
-              {!urls[p.id] && <PinIcon size={16} color="#A3A3A3" />}
-            </button>
-          ))}
+        <div className="filmstrip__row">
+          {places.slice(Math.max(0, index - 14), index + 15).map((p, k) => {
+            const i = Math.max(0, index - 14) + k
+            return (
+              <button
+                key={p.id}
+                ref={gallery.thumbRef(i)}
+                type="button"
+                role="option"
+                aria-selected={i === index}
+                aria-label={titleText(p)}
+                className={`thumb${urls[p.id] ? '' : ' thumb--pin'}`}
+                style={{ backgroundImage: urls[p.id] ? `url(${urls[p.id]})` : undefined }}
+                onClick={() => gallery.tapThumb(i)}
+              >
+                {!urls[p.id] && <PinIcon size={16} color="#A3A3A3" />}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -495,7 +346,7 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
             urls={urls}
             coords={coords}
             onBack={() => setMapOpen(false)}
-            onPick={(i) => { go(i); setMapOpen(false) }}
+            onPick={(i) => { gallery.jump(i); setMapOpen(false) }}
           />
         </div>
       )}

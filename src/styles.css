@@ -468,8 +468,7 @@ p { margin: 0; }
   overflow: hidden;
 }
 .deck--swipe { touch-action: none; }
-.deck__track { position: absolute; inset: 0; will-change: transform; }
-.deck__track--anim { transition: transform 300ms cubic-bezier(.2, .8, .2, 1); }
+.deck__track { position: absolute; inset: 0; }
 .deck__slide {
   position: absolute;
   top: 0;
@@ -477,9 +476,8 @@ p { margin: 0; }
   width: calc(var(--ch) * 0.75);
   height: 100%;
   margin-left: calc(var(--ch) * -0.375);
+  will-change: transform;
 }
-.deck__slide--side { visibility: hidden; }
-.deck--moving .deck__slide--side { visibility: visible; }
 .card3d {
   width: 100%;
   height: 100%;
@@ -621,14 +619,11 @@ p { margin: 0; }
   position: absolute;
   left: 0;
   top: 0;
+  width: 100%;
   height: 96px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: transform 320ms cubic-bezier(.2, .8, .2, 1);
+  perspective: 520px;
 }
 .filmstrip { touch-action: none; }
-.filmstrip__row--drag { transition: none; }
 .thumb {
   flex: 0 0 auto;
   padding: 0;
@@ -638,7 +633,12 @@ p { margin: 0; }
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 320ms cubic-bezier(.2, .8, .2, 1);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 46px;
+  height: 62px;
+  will-change: transform;
 }
 .thumb--pin { background: #000000; border: 1.5px dashed var(--dash); }
 .thumb--sel { border: 2px solid #FFFFFF; }
@@ -692,7 +692,7 @@ p { margin: 0; }
 .mpin__label--dim { color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) {
-  .card3d__inner, .filmstrip__row, .thumb, .deck__track--anim { transition: none; }
+  .card3d__inner { transition: none; }
   .card-photo { animation: none; }
 }
 
