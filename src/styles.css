@@ -606,6 +606,18 @@ p { margin: 0; }
 .viewer__title { font-size: 24px; font-weight: 700; letter-spacing: -0.6px; overflow-wrap: anywhere; }
 .viewer__title--dim { color: var(--muted); }
 .viewer__area { margin-top: 4px; font-size: 15px; color: var(--muted); }
+/* Tappable location: green pin, grey text, opens directions */
+.viewer__area--link {
+  margin-top: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.viewer__area--link:active { color: var(--text); }
 
 .filmstrip {
   margin-top: auto;

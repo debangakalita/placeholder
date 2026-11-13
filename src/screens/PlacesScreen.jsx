@@ -332,7 +332,15 @@ export default function PlacesScreen({ places, active, coords, account, onClose,
 
       <div className="viewer__caption">
         <p className={`viewer__title${place.title ? '' : ' viewer__title--dim'}`}>{titleText(place)}</p>
-        <p className="viewer__area">{areaText(place)}</p>
+        {link ? (
+          <a className="viewer__area viewer__area--link" href={link} target="_blank" rel="noopener noreferrer"
+            aria-label={`Directions to ${areaText(place)}`} data-noswipe>
+            <PinIcon size={15} color="var(--accent)" withDot />
+            {areaText(place)}
+          </a>
+        ) : (
+          <p className="viewer__area">{areaText(place)}</p>
+        )}
       </div>
 
       <div
