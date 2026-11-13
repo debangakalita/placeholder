@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isIOS } from '../lib/device.js'
 
 // Opens the back camera into a <video> element.
 // status: 'starting' | 'live' | 'denied' | 'unavailable' | 'error'
@@ -47,19 +48,39 @@ export function useCamera() {
     }
   }, [])
 
+  // Coming back to the app: reuse the camera we already have if it is still alive.
+  // On iPhone, asking for the camera again means asking for permission again, so we avoid it.
+  const resume = useCallback(async () => {
+    const stream = streamRef.current
+    const alive = stream?.getVideoTracks().some((t) => t.readyState === 'live')
+    if (alive) {
+      const video = videoRef.current
+      if (video) {
+        if (video.srcObject !== stream) video.srcObject = stream
+        await video.play().catch(() => {})
+      }
+      setStatus('live')
+      return
+    }
+    stop()
+    start()
+  }, [start, stop])
+
   useEffect(() => {
     start()
-    // Phones kill the camera in the background; restart it when the app comes back.
+    // Android remembers the permission, so we turn the camera off in the background to save
+    // battery. iPhone asks again every time the camera is turned back on, so there we leave it:
+    // iOS pauses it by itself while the app is in the background.
     const onVisibility = () => {
-      if (document.hidden) stop()
-      else start()
+      if (document.hidden) { if (!isIOS) stop() }
+      else resume()
     }
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
       document.removeEventListener('visibilitychange', onVisibility)
       stop()
     }
-  }, [start, stop])
+  }, [start, stop, resume])
 
   // Grabs the current frame as a tall 3:4 JPEG (matches the 3:4 view),
   // shrunk to at most 1200 px tall so it stays light on the phone.

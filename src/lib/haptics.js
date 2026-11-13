@@ -3,9 +3,7 @@
 // flipping an iOS-style switch gives a native haptic tick, so we flip a hidden one.
 // Works best inside a tap or touch handler; does nothing on devices without haptics.
 
-const isIOS = typeof navigator !== 'undefined' &&
-  (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+import { isIOS } from './device.js'
 
 let label = null
 function iosSwitch() {
