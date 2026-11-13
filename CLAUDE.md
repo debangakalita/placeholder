@@ -15,7 +15,7 @@ This doc is the rulebook for the project. Give it to Claude or Cursor at the sta
 - Opens directly into the camera. No home screen, no cards.
 - Photo flow: take a photo, then the preview shows it with optional title, note and tags, then Save or Retake. Location is saved automatically.
 - Pin only: one button saves the current location without a photo, for awkward places where taking a photo is hard.
-- Swipe up (or tap the "places" pill at the top) to open the Places viewer: one big photo at a time with its title and area, and a filmstrip of all places below. The map view opens from the map icon in its top bar; the "…" menu has Open in Maps and Delete place.
+- Swipe up (or tap the "places" pill at the top) to open the Places viewer: one big photo at a time with its title and area, and a filmstrip of all places below. The map view opens from the map icon in its top bar; the "…" menu has Grid view (all places, three per row), Open in Maps and Delete place.
 - Details are always optional. Add them on the preview, or later by tapping a photo in Places: the card flips and you edit title, note and tags on its back. Tags are typed by hand. Auto tags suggested from the photo and the "must revisit" flag are parked for later.
 - Saves on the phone first and uploads when the internet is back.
 - Works on Android and iPhone as an installable web app. English only.

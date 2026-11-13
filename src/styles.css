@@ -450,6 +450,7 @@ p { margin: 0; }
   text-align: left;
   text-decoration: none;
 }
+.menu__item--icon { gap: 10px; }
 .menu__item--danger { color: var(--danger); }
 .menu__item--off { color: #6A6A6A; }
 .menu__ask { padding: 10px 12px 6px; font-size: 14px; line-height: 1.4; color: var(--muted); }
@@ -665,6 +666,41 @@ p { margin: 0; }
   font-size: 10px;
 }
 .mapscreen__map .leaflet-control-attribution a { color: #A3A3A3; }
+
+/* Grid view inside Places */
+.gridscreen {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top) + 14px) 8px 0;
+}
+.grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-content: start;
+  gap: 4px;
+  padding: 4px 4px calc(env(safe-area-inset-bottom) + 24px);
+  scrollbar-width: none;
+}
+.grid::-webkit-scrollbar { display: none; }
+.grid__tile {
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: #1A1A1A center / cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.grid__tile--pin { background: transparent; border: 1.5px dashed var(--dash); }
+.grid__tile--current { outline: 2px solid #FFFFFF; outline-offset: 2px; }
+.grid__tile:active { opacity: 0.7; }
 
 .mpin-icon { background: transparent; border: none; }
 .mpin { transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; width: max-content; max-width: 120px; }
