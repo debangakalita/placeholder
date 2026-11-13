@@ -80,9 +80,12 @@ p { margin: 0; }
 
 .viewfinder {
   position: relative;
-  margin-top: clamp(20px, 6vh, 48px);
-  width: min(100%, 440px);
-  aspect-ratio: 1;
+  /* centred between the top bar and the buttons */
+  margin: auto 0;
+  /* tall 3:4 frame; shrinks on short phones so the buttons always fit */
+  width: min(100%, 440px, calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 250px) * 0.75));
+  aspect-ratio: 3 / 4;
+  flex-shrink: 0;
   border-radius: 36px;
   background: #1A1A1A;
   overflow: hidden;
@@ -149,11 +152,9 @@ p { margin: 0; }
 
 /* Main buttons sit low, within thumb reach */
 .cam__controls {
-  margin-top: auto;
-  /* sits a little higher, leaving room for the swipe hint below */
   width: 100%;
   max-width: 440px;
-  padding: 24px 20px 0;
+  padding: 20px 20px 12px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
@@ -162,32 +163,21 @@ p { margin: 0; }
 .cam__controls .shutter { justify-self: end; }
 
 .pin-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  width: 84px;
+  height: 84px;
   padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.pin-btn__circle {
-  width: 56px;
-  height: 56px;
   border-radius: 50%;
   border: 1.5px dashed #8C8C8C;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
-.pin-btn:active .pin-btn__circle { background: var(--surface); }
+.pin-btn:active { background: var(--surface); }
 
 .shutter {
-  width: 88px;
-  height: 88px;
+  width: 84px;
+  height: 84px;
   padding: 5px;
   border-radius: 50%;
   border: 4px solid var(--accent);
@@ -292,21 +282,7 @@ p { margin: 0; }
 
 
 /* Swipe hint at the bottom of the camera (tap also opens Places) */
-.swipe-hint {
-  margin-top: 8px;
-  min-height: 32px;
-  padding: 0 48px;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: #8C8C8C;
-  font-size: 13px;
-}
-.swipe-hint__bar { width: 36px; height: 4px; border-radius: 2px; background: #555555; }
+
 
 @media (prefers-reduced-motion: reduce) {
   .sheet { transition: none; }

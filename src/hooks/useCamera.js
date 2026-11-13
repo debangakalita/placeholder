@@ -61,19 +61,23 @@ export function useCamera() {
     }
   }, [start, stop])
 
-  // Grabs the current frame as a square JPEG (matches the square view),
-  // shrunk to at most 1200 px so it stays light on the phone.
+  // Grabs the current frame as a tall 3:4 JPEG (matches the 3:4 view),
+  // shrunk to at most 1200 px tall so it stays light on the phone.
   const capture = useCallback(async () => {
     const video = videoRef.current
     if (!video || !video.videoWidth) return null
-    const side = Math.min(video.videoWidth, video.videoHeight)
-    const sx = (video.videoWidth - side) / 2
-    const sy = (video.videoHeight - side) / 2
-    const out = Math.min(side, 1200)
+    const vw = video.videoWidth
+    const vh = video.videoHeight
+    const w = Math.min(vw, vh * 0.75)
+    const h = w / 0.75
+    const sx = (vw - w) / 2
+    const sy = (vh - h) / 2
+    const outH = Math.round(Math.min(h, 1200))
+    const outW = Math.round(outH * 0.75)
     const canvas = document.createElement('canvas')
-    canvas.width = out
-    canvas.height = out
-    canvas.getContext('2d').drawImage(video, sx, sy, side, side, 0, 0, out, out)
+    canvas.width = outW
+    canvas.height = outH
+    canvas.getContext('2d').drawImage(video, sx, sy, w, h, 0, 0, outW, outH)
     return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85))
   }, [])
 

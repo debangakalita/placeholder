@@ -102,9 +102,9 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, 
       </div>
 
       <div className="cam__controls">
-        <button type="button" className="pin-btn" onClick={handlePin}>
-          <span className="pin-btn__circle"><PinIcon size={22} color="#FFFFFF" withDot /></span>
-          Pin only
+        <button type="button" className="pin-btn" onClick={handlePin}
+          aria-label="Pin only: save this location without a photo">
+          <PinIcon size={26} color="#FFFFFF" withDot />
         </button>
 
         <button
@@ -117,10 +117,6 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, 
           <span className="shutter__inner" />
         </button>
       </div>
-
-      <button type="button" className="swipe-hint" onClick={onOpenPlaces} aria-label="Open places">
-        <span className="swipe-hint__bar" aria-hidden="true" />
-      </button>
     </main>
   )
 }
