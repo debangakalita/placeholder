@@ -348,8 +348,8 @@ p { margin: 0; }
 .preview__tags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
 .tag {
   min-height: 36px;
-  padding: 0 12px;
-  border-radius: 4px;
+  padding: 0 14px;
+  border-radius: 999px;
   border: 1.5px dashed #555555;
   background: transparent;
   color: var(--muted);
@@ -564,9 +564,9 @@ p { margin: 0; }
 .back__tags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
   min-height: 32px;
-  padding: 0 10px;
+  padding: 0 13px;
   border: none;
-  border-radius: 4px;
+  border-radius: 999px;
   background: var(--raised);
   color: var(--text);
   font: inherit;

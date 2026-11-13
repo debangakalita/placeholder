@@ -54,7 +54,7 @@ Minimal and quiet. Inspiration: Locket for the camera, Notion for everything els
 | Danger | #FF7A6E | Delete place |
 | Font | Bricolage Grotesque (400 to 700) | All text |
 | Sizes | Title 30 to 32 bold, place title 24 bold, note 16, small 13 to 15 | Title always leads |
-| Corners | 36 camera view, 28 photo and cards, 10 filmstrip, 4 tags, round buttons | A different radius per level |
+| Corners | 36 camera view, 28 photo and cards, 10 filmstrip, pill tags, round buttons | A different radius per level |
 | Spacing | 24 px screen edges on preview, 8 px between filmstrip items |  |
 | Icons | Simple line icons, 2 px stroke |  |
 

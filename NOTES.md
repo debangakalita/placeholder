@@ -5,6 +5,7 @@ Read `CLAUDE.md` first. This file is the short state of the build, for starting 
 Live app: https://placeholder-three-flax.vercel.app (Vercel deploys every push to `main`).
 
 ## Done
+- Tags are pills (14 Nov): "+ tag" (dashed) and added tags (solid) are fully rounded, on the preview and on the card back. Style guide corners updated (was 4 px).
 - Tappable location in Places (14 Nov, trial — option I from the "Clickable location options" canvas): the area under the title shows a green pin and opens Google Maps directions; grey text, 44 px tap height, turns white while pressed. Pin-less/no-coords places stay plain text. To undo: revert the commit "Places: location opens directions (option I)".
 - "Open in Maps" renamed to "Directions" (14 Nov), on the card back and in the … menu; the link now opens Google Maps directions to the place instead of a pin.
 - Tap outside flips back (14 Nov): while the Places card shows its back, a tap anywhere outside the card turns it back to the photo; a half-typed tag is saved first and the keyboard closes.
