@@ -5,6 +5,7 @@ Read `CLAUDE.md` first. This file is the short state of the build, for starting 
 Live app: https://placeholder-three-flax.vercel.app (Vercel deploys every push to `main`).
 
 ## Done
+- Preview layout (14 Nov): Retake is now a cross icon in an 88 px circle, same size as Save (both 64 px while typing), no text label. Tags moved to the right of the title, top-aligned with it (title keeps at least 54% of the width; tags stack downward, right-aligned).
 - Logo back to option 2a "spot as the o" (14 Nov): dashed-box trial reverted; SW cache bumped to v4 so phones that got the dashed box refresh.
 - Logo (14 Nov): option 2a "spot as the o" from the Placeholder logo directions canvas. Fredoka SemiBold turned into vector paths (no font download); wordmark replaces the dashed text in the camera top bar; new app icon (green spot on black) for home screen, Android and favicon; service worker cache bumped to v2 so installed apps refresh. Files: src/components/Logo.jsx, src/assets/logo-wordmark.json, public/logo.svg, public/icon*.
 - Tags are pills (14 Nov): "+ tag" (dashed) and added tags (solid) are fully rounded, on the preview and on the card back. Style guide corners updated (was 4 px).

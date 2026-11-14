@@ -314,8 +314,16 @@ p { margin: 0; }
 }
 .preview--typing .preview__photo { flex: 0 0 120px; }
 .preview__where { margin-top: 14px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
-.preview__title {
+.preview__head {
   margin-top: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.preview__titlewrap { flex: 1 1 0; min-width: 54%; display: flex; }
+.preview__title {
+  width: 100%;
+  min-width: 0;
   padding: 0 0 4px;
   border: none;
   border-radius: 0;
@@ -344,7 +352,15 @@ p { margin: 0; }
 .preview__title::placeholder, .preview__note::placeholder, .tag--input::placeholder { color: #6A6A6A; }
 .preview__title:focus-visible, .preview__note:focus-visible { outline: none; box-shadow: 0 2px 0 0 var(--accent); }
 
-.preview__tags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+.preview__tags {
+  flex: 0 1 auto;
+  max-width: 44%;
+  padding-top: 2px; /* lines the first tag up with the top of the title */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
 .tag {
   min-height: 36px;
   padding: 0 14px;
@@ -354,6 +370,7 @@ p { margin: 0; }
   color: var(--muted);
   font: inherit;
   font-size: 14px;
+  white-space: nowrap;
 }
 .tag--on { border: 1.5px solid var(--raised); background: var(--raised); color: var(--text); }
 .tag--input { width: 110px; color: var(--text); user-select: text; -webkit-user-select: text; }
@@ -368,16 +385,16 @@ p { margin: 0; }
 }
 .preview--typing .preview__bar { margin-top: 12px; padding-top: 0; }
 .retake {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  padding: 0; border: none; background: transparent; color: var(--muted); font-size: 13px;
+  width: 88px; height: 88px; padding: 0; border: none; border-radius: 50%;
+  background: var(--surface); display: flex; align-items: center; justify-content: center;
 }
-.retake__circle { width: 56px; height: 56px; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; }
+.retake:active { background: var(--raised, #2A2A2A); }
 .save-btn {
   width: 88px; height: 88px; border: none; border-radius: 50%;
   background: var(--accent); color: #000000; font-size: 18px; font-weight: 700;
 }
 .save-btn:disabled { opacity: 0.6; }
-.preview--typing .retake__circle { width: 48px; height: 48px; }
+.preview--typing .retake { width: 64px; height: 64px; }
 .preview--typing .save-btn { width: 64px; height: 64px; font-size: 16px; }
 
 /* Saved */

@@ -52,17 +52,44 @@ export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
         {locationText}
       </p>
 
-      <label className="sr-only" htmlFor="ph-title">Title</label>
-      <input
-        id="ph-title"
-        className="preview__title"
-        type="text"
-        placeholder="Add a title"
-        value={title}
-        maxLength={80}
-        enterKeyHint="next"
-        onChange={(e) => setTitle(e.target.value)}
-      />
+      <div className="preview__head">
+        <div className="preview__titlewrap">
+          <label className="sr-only" htmlFor="ph-title">Title</label>
+          <input
+            id="ph-title"
+            className="preview__title"
+            type="text"
+            placeholder="Add a title"
+            value={title}
+            maxLength={80}
+            enterKeyHint="next"
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+        <div className="preview__tags" role="group" aria-label="Tags">
+          {picked.map((tag) => (
+            <button key={tag} type="button" className="tag tag--on" aria-label={`Remove tag ${tag}`} onClick={() => remove(tag)}>
+              {tag}<span aria-hidden="true"> ×</span>
+            </button>
+          ))}
+          {adding ? (
+            <input
+              className="tag tag--input"
+              autoFocus
+              value={draft}
+              maxLength={24}
+              placeholder="new tag"
+              aria-label="New tag"
+              enterKeyHint="done"
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={addCustom}
+              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+            />
+          ) : (
+            <button type="button" className="tag" onClick={() => setAdding(true)}>+ tag</button>
+          )}
+        </div>
+      </div>
 
       <label className="sr-only" htmlFor="ph-note">Note</label>
       <textarea
@@ -74,39 +101,12 @@ export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
         onChange={(e) => setNote(e.target.value)}
       />
 
-      <div className="preview__tags" role="group" aria-label="Tags">
-        {picked.map((tag) => (
-          <button key={tag} type="button" className="tag tag--on" aria-label={`Remove tag ${tag}`} onClick={() => remove(tag)}>
-            {tag}<span aria-hidden="true"> ×</span>
-          </button>
-        ))}
-        {adding ? (
-          <input
-            className="tag tag--input"
-            autoFocus
-            value={draft}
-            maxLength={24}
-            placeholder="new tag"
-            aria-label="New tag"
-            enterKeyHint="done"
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={addCustom}
-            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-          />
-        ) : (
-          <button type="button" className="tag" onClick={() => setAdding(true)}>+ tag</button>
-        )}
-      </div>
-
       <div className="preview__bar">
-        <button type="button" className="retake" onClick={onRetake}>
-          <span className="retake__circle">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"
-              strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 12a8 8 0 1 0 2.5-5.8" /><path d="M4 4v5h5" />
-            </svg>
-          </span>
-          Retake
+        <button type="button" className="retake" onClick={onRetake} aria-label="Retake">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"
+            strokeLinecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
         </button>
         <button type="button" className="save-btn" onClick={save} disabled={saving}>Save</button>
       </div>
