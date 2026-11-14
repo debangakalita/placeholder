@@ -45,27 +45,44 @@ export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
       className={`preview${keyboard.open ? ' preview--typing' : ''}`}
       style={keyboard.open && keyboard.height ? { height: `${keyboard.height}px` } : undefined}
     >
-      <div className="preview__photo" style={url ? { backgroundImage: `url(${url})` } : undefined} role="img" aria-label="Your photo" />
+      <div className="preview__media">
+        <div className="preview__photo" style={url ? { backgroundImage: `url(${url})` } : undefined} role="img" aria-label="Your photo" />
+        <button type="button" className="retake" onClick={onRetake} aria-label="Retake">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.2"
+            strokeLinecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
 
       <p className="preview__where">
         <PinIcon size={14} color="var(--accent)" />
         {locationText}
       </p>
 
-      <div className="preview__head">
-        <div className="preview__titlewrap">
-          <label className="sr-only" htmlFor="ph-title">Title</label>
-          <input
-            id="ph-title"
-            className="preview__title"
-            type="text"
-            placeholder="Add a title"
-            value={title}
-            maxLength={80}
-            enterKeyHint="next"
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
+      <label className="sr-only" htmlFor="ph-title">Title</label>
+      <input
+        id="ph-title"
+        className="preview__title"
+        type="text"
+        placeholder="Add a title"
+        value={title}
+        maxLength={80}
+        enterKeyHint="next"
+        onChange={(e) => setTitle(e.target.value)}
+      />
+
+      <label className="sr-only" htmlFor="ph-note">Note</label>
+      <textarea
+        id="ph-note"
+        className="preview__note"
+        rows={2}
+        placeholder="Add a note"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+      />
+
+      <div className="preview__bar">
         <div className="preview__tags" role="group" aria-label="Tags">
           {picked.map((tag) => (
             <button key={tag} type="button" className="tag tag--on" aria-label={`Remove tag ${tag}`} onClick={() => remove(tag)}>
@@ -89,25 +106,6 @@ export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
             <button type="button" className="tag" onClick={() => setAdding(true)}>+ tag</button>
           )}
         </div>
-      </div>
-
-      <label className="sr-only" htmlFor="ph-note">Note</label>
-      <textarea
-        id="ph-note"
-        className="preview__note"
-        rows={2}
-        placeholder="Add a note"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
-
-      <div className="preview__bar">
-        <button type="button" className="retake" onClick={onRetake} aria-label="Retake">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"
-            strokeLinecap="round" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
         <button type="button" className="save-btn" onClick={save} disabled={saving}>Save</button>
       </div>
     </main>

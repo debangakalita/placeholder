@@ -5,6 +5,7 @@ Read `CLAUDE.md` first. This file is the short state of the build, for starting 
 Live app: https://placeholder-three-flax.vercel.app (Vercel deploys every push to `main`).
 
 ## Done
+- Preview (14 Nov): Retake is now a cross on the photo's top-left corner (44 px, see-through black circle, white cross) so it can't be hit by the thumb by mistake; tags (+ tag) moved into the bottom bar on the left, next to the 88 px Save on the right; title has the full width again.
 - Preview option D tried and reverted (14 Nov): back to the same-size 88 px cross + Save circles with tags beside the title.
 - Preview layout (14 Nov): Retake is now a cross icon in an 88 px circle, same size as Save (both 64 px while typing), no text label. Tags moved to the right of the title, top-aligned with it (title keeps at least 54% of the width; tags stack downward, right-aligned).
 - Logo back to option 2a "spot as the o" (14 Nov): dashed-box trial reverted; SW cache bumped to v4 so phones that got the dashed box refresh.
