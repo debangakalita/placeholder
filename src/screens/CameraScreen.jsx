@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useCamera } from '../hooks/useCamera.js'
 import { PinIcon } from '../components/Icons.jsx'
 import { haptic } from '../lib/haptics.js'
+import Logo from '../components/Logo.jsx'
 
 const CAMERA_MESSAGES = {
   denied: {
@@ -63,7 +64,7 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, 
   return (
     <main className="cam">
       <header className="cam__top">
-        <span className="wordmark">placeholder</span>
+        <h1 className="wordmark"><Logo height={21} /></h1>
         <button type="button" className="pill" onClick={onOpenPlaces}
           aria-label={`Open places, ${placesCount} saved`}>
           <span className="dot" aria-hidden="true" />{placesCount} {placesCount === 1 ? 'place' : 'places'}

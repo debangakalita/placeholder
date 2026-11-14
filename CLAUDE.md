@@ -52,7 +52,8 @@ Minimal and quiet. Inspiration: Locket for the camera, Notion for everything els
 | Muted text | #A3A3A3 | Areas, dates, labels, hints |
 | Placeholder dash | #555555 to #6A6A6A, 1.5 px dashed | Anything not filled in yet |
 | Danger | #FF7A6E | Delete place |
-| Font | Bricolage Grotesque (400 to 700) | All text |
+| Font | Bricolage Grotesque (400 to 700) | All text (except the logo) |
+| Logo | Lowercase "placeholder" in Fredoka SemiBold, the "o" is the green spot (green circle with a small black dot, top-right). App icon = the spot alone on black | Camera top bar (21 px tall), app icon, favicon. Drawn as vector shapes (src/components/Logo.jsx, public/logo.svg), so no extra font loads |
 | Sizes | Title 30 to 32 bold, place title 24 bold, note 16, small 13 to 15 | Title always leads |
 | Corners | 36 camera view, 28 photo and cards, 10 filmstrip, pill tags, round buttons | A different radius per level |
 | Spacing | 24 px screen edges on preview, 8 px between filmstrip items |  |

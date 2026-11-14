@@ -1,6 +1,6 @@
 // Minimal service worker: lets the app be installed and open without internet.
 // Network first, so new versions show up right away; cache is only a fallback.
-const CACHE = 'placeholder-v1'
+const CACHE = 'placeholder-v2'
 
 self.addEventListener('install', () => self.skipWaiting())
 
