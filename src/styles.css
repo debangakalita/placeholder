@@ -60,7 +60,26 @@ p { margin: 0; }
   align-items: center;
   color: var(--text);
 }
-.wordmark svg { display: block; }
+.logo {
+  position: relative;
+  display: inline-block;
+  padding: 4px 10px 6px;
+  border: 1.5px dashed var(--dash);
+  border-radius: 6px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+.logo__dot {
+  position: absolute;
+  right: -4.5px;
+  top: -4.5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
 
 .pill {
   display: flex;

@@ -5,6 +5,7 @@ Read `CLAUDE.md` first. This file is the short state of the build, for starting 
 Live app: https://placeholder-three-flax.vercel.app (Vercel deploys every push to `main`).
 
 ## Done
+- Logo switched to option 1 "Dashed box" (14 Nov, trial): Bricolage Bold in a dashed box with a green dot on the top-right corner; app icon = empty dashed box + green dot (separate maskable icon so Android doesn't clip the dot); SW cache v3. To go back to the Fredoka spot logo, revert the commit "Logo: try the dashed box".
 - Logo (14 Nov): option 2a "spot as the o" from the Placeholder logo directions canvas. Fredoka SemiBold turned into vector paths (no font download); wordmark replaces the dashed text in the camera top bar; new app icon (green spot on black) for home screen, Android and favicon; service worker cache bumped to v2 so installed apps refresh. Files: src/components/Logo.jsx, src/assets/logo-wordmark.json, public/logo.svg, public/icon*.
 - Tags are pills (14 Nov): "+ tag" (dashed) and added tags (solid) are fully rounded, on the preview and on the card back. Style guide corners updated (was 4 px).
 - Tappable location in Places (14 Nov, trial — option I from the "Clickable location options" canvas): the area under the title shows a green pin and opens Google Maps directions; grey text, 44 px tap height, turns white while pressed. Pin-less/no-coords places stay plain text. To undo: revert the commit "Places: location opens directions (option I)".

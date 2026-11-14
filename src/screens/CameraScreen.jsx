@@ -64,7 +64,7 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, 
   return (
     <main className="cam">
       <header className="cam__top">
-        <h1 className="wordmark"><Logo height={21} /></h1>
+        <h1 className="wordmark"><Logo /></h1>
         <button type="button" className="pill" onClick={onOpenPlaces}
           aria-label={`Open places, ${placesCount} saved`}>
           <span className="dot" aria-hidden="true" />{placesCount} {placesCount === 1 ? 'place' : 'places'}
