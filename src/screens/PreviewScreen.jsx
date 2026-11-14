@@ -52,58 +52,60 @@ export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
         {locationText}
       </p>
 
-      <div className="preview__head">
-        <div className="preview__titlewrap">
-          <label className="sr-only" htmlFor="ph-title">Title</label>
-          <input
-            id="ph-title"
-            className="preview__title"
-            type="text"
-            placeholder="Add a title"
-            value={title}
-            maxLength={80}
-            enterKeyHint="next"
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-        <div className="preview__tags" role="group" aria-label="Tags">
-          {picked.map((tag) => (
-            <button key={tag} type="button" className="tag tag--on" aria-label={`Remove tag ${tag}`} onClick={() => remove(tag)}>
-              {tag}<span aria-hidden="true"> ×</span>
-            </button>
-          ))}
-          {adding ? (
-            <input
-              className="tag tag--input"
-              autoFocus
-              value={draft}
-              maxLength={24}
-              placeholder="new tag"
-              aria-label="New tag"
-              enterKeyHint="done"
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={addCustom}
-              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-            />
-          ) : (
-            <button type="button" className="tag" onClick={() => setAdding(true)}>+ tag</button>
-          )}
-        </div>
-      </div>
+      <label className="sr-only" htmlFor="ph-title">Title</label>
+      <input
+        id="ph-title"
+        className="preview__title"
+        type="text"
+        placeholder="Add a title"
+        value={title}
+        maxLength={80}
+        enterKeyHint="next"
+        onChange={(e) => setTitle(e.target.value)}
+      />
 
       <label className="sr-only" htmlFor="ph-note">Note</label>
       <textarea
         id="ph-note"
         className="preview__note"
-        rows={2}
+        rows={1}
         placeholder="Add a note"
         value={note}
-        onChange={(e) => setNote(e.target.value)}
+        onChange={(e) => {
+          setNote(e.target.value)
+          // grow with the text instead of scrolling inside a tiny box
+          e.target.style.height = 'auto'
+          e.target.style.height = `${e.target.scrollHeight}px`
+        }}
       />
+
+      <div className="preview__tags" role="group" aria-label="Tags">
+        {picked.map((tag) => (
+          <button key={tag} type="button" className="tag tag--on" aria-label={`Remove tag ${tag}`} onClick={() => remove(tag)}>
+            {tag}<span aria-hidden="true"> ×</span>
+          </button>
+        ))}
+        {adding ? (
+          <input
+            className="tag tag--input"
+            autoFocus
+            value={draft}
+            maxLength={24}
+            placeholder="new tag"
+            aria-label="New tag"
+            enterKeyHint="done"
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={addCustom}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+          />
+        ) : (
+          <button type="button" className="tag" onClick={() => setAdding(true)}>+ tag</button>
+        )}
+      </div>
 
       <div className="preview__bar">
         <button type="button" className="retake" onClick={onRetake} aria-label="Retake">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A3A3A3" strokeWidth="2"
             strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
