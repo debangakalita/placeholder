@@ -1,11 +1,20 @@
-// The Placeholder wordmark: "placeholder" in Bricolage Grotesque Bold inside a dashed
-// placeholder box, with a green dot pinned to its top-right corner.
-// Plain text in the app font, so it stays sharp and needs nothing extra to load.
-export default function Logo({ className = '' }) {
+import mark from '../assets/logo-wordmark.json'
+
+// The Placeholder wordmark: lowercase "placeholder" in Fredoka SemiBold with the green
+// spot as the "o". Drawn as vector shapes, so no extra font has to load.
+export default function Logo({ height = 21, className }) {
   return (
-    <span className={`logo ${className}`} role="img" aria-label="placeholder">
-      <span aria-hidden="true">placeholder</span>
-      <span className="logo__dot" aria-hidden="true" />
-    </span>
+    <svg
+      className={className}
+      viewBox={mark.viewBox}
+      height={height}
+      width={Math.round(height * mark.ratio)}
+      role="img"
+      aria-label="placeholder"
+    >
+      <path fill="currentColor" d={mark.letters} />
+      <circle cx={mark.spot.cx} cy={mark.spot.cy} r={mark.spot.r} fill="var(--accent)" />
+      <circle cx={mark.dot.cx} cy={mark.dot.cy} r={mark.dot.r} fill="#000000" />
+    </svg>
   )
 }
