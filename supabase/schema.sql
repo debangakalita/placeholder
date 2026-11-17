@@ -31,3 +31,22 @@ create policy "Owner can read photos" on storage.objects for select to authentic
 create policy "Owner can upload photos" on storage.objects for insert to authenticated with check (bucket_id = 'photos' and (storage.foldername(name))[1] = (select auth.uid())::text);
 create policy "Owner can replace photos" on storage.objects for update to authenticated using (bucket_id = 'photos' and (storage.foldername(name))[1] = (select auth.uid())::text);
 create policy "Owner can delete photos" on storage.objects for delete to authenticated using (bucket_id = 'photos' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+-- 17 Nov 2026: groups (like Pinterest boards). Migration "add_groups".
+-- A place can be in several groups; it keeps the list in places.group_ids. Tags are no longer used.
+create table public.groups (
+  id uuid primary key,
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  name text not null default '' check (char_length(name) <= 40),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  deleted boolean not null default false
+);
+create index groups_user_updated_idx on public.groups (user_id, updated_at);
+alter table public.groups enable row level security;
+create policy "Owner can read groups" on public.groups for select to authenticated using ((select auth.uid()) = user_id);
+create policy "Owner can add groups" on public.groups for insert to authenticated with check ((select auth.uid()) = user_id);
+create policy "Owner can change groups" on public.groups for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "Owner can delete groups" on public.groups for delete to authenticated using ((select auth.uid()) = user_id);
+
+alter table public.places add column group_ids uuid[] not null default '{}';

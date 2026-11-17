@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { PinIcon } from '../components/Icons.jsx'
+import GroupPicker from '../components/GroupPicker.jsx'
 import { useKeyboard } from '../hooks/useKeyboard.js'
 import { areaName } from '../lib/geo.js'
+import { groupNames } from '../lib/groups.js'
 
-export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
+export default function PreviewScreen({ photo, coords, groups, places, onCreateGroup, onRetake, onSave }) {
   const [title, setTitle] = useState('')
   const [note, setNote] = useState('')
-  const [picked, setPicked] = useState([])
-  const [adding, setAdding] = useState(false)
-  const [draft, setDraft] = useState('')
+  const [picked, setPicked] = useState([]) // group ids
+  const [picking, setPicking] = useState(false)
   const [area, setArea] = useState(null)
   const [saving, setSaving] = useState(false)
   const keyboard = useKeyboard()
@@ -22,22 +23,13 @@ export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
     return () => { alive = false }
   }, [coords?.lat, coords?.lng])
 
-  const remove = (tag) => setPicked((p) => p.filter((t) => t !== tag))
-
-  const addCustom = () => {
-    const tag = draft.trim().toLowerCase()
-    setDraft('')
-    setAdding(false)
-    if (!tag) return
-    setPicked((p) => (p.includes(tag) ? p : [...p, tag]))
-  }
-
   const save = async () => {
     if (saving) return
     setSaving(true)
-    await onSave({ title: title.trim(), note: note.trim(), tags: picked, area })
+    await onSave({ title: title.trim(), note: note.trim(), groups: picked, area })
   }
 
+  const chosen = groupNames(picked, groups)
   const locationText = !coords ? 'No location yet' : area || 'Near your location'
 
   return (
@@ -82,32 +74,35 @@ export default function PreviewScreen({ photo, coords, onRetake, onSave }) {
         onChange={(e) => setNote(e.target.value)}
       />
 
-      <div className="preview__bar">
-        <div className="preview__tags" role="group" aria-label="Tags">
-          {picked.map((tag) => (
-            <button key={tag} type="button" className="tag tag--on" aria-label={`Remove tag ${tag}`} onClick={() => remove(tag)}>
-              {tag}<span aria-hidden="true"> ×</span>
-            </button>
+      {chosen.length > 0 && (
+        <div className="gpills preview__groups" role="group" aria-label="Groups">
+          {chosen.map((g) => (
+            <button key={g.id} type="button" className="gpill" onClick={() => setPicking(true)}>{g.name}</button>
           ))}
-          {adding ? (
-            <input
-              className="tag tag--input"
-              autoFocus
-              value={draft}
-              maxLength={24}
-              placeholder="new tag"
-              aria-label="New tag"
-              enterKeyHint="done"
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={addCustom}
-              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-            />
-          ) : (
-            <button type="button" className="tag" onClick={() => setAdding(true)}>+ tag</button>
-          )}
         </div>
+      )}
+
+      <div className="preview__bar">
+        <button type="button" className="groups-btn" onClick={() => setPicking(true)}
+          aria-label={chosen.length ? 'Change groups' : 'Add to groups'}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"
+            strokeLinecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
         <button type="button" className="save-btn" onClick={save} disabled={saving}>Save</button>
       </div>
+
+      {picking && (
+        <GroupPicker
+          groups={groups}
+          places={places}
+          selected={picked}
+          onChange={setPicked}
+          onCreate={onCreateGroup}
+          onClose={() => setPicking(false)}
+        />
+      )}
     </main>
   )
 }

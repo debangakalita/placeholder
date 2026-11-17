@@ -5,6 +5,11 @@ Read `CLAUDE.md` first. This file is the short state of the build, for starting 
 Live app: https://placeholder-three-flax.vercel.app (Vercel deploys every push to `main`).
 
 ## Done
+- Groups (17 Nov), replacing tags. Mockups: "Groups feature" canvas. A place can be in several groups or none.
+  - Preview: "+" circle (88 px, bottom left, opposite Save) opens the picker sheet (src/components/GroupPicker.jsx): dashed "New group" row (type + Create), groups with latest-photo thumbnail + count, green tick / dashed empty circle, Done. Picked groups show as pills under the note.
+  - Places "…" menu → Groups (src/screens/GroupsScreen.jsx): two per row, newest photo as cover, dashed "New group" tile. Opening a group filters the same viewer, filmstrip, grid and map; top bar shows "Name · N places" and a back arrow; its "…" menu has Rename group / Delete group (deleting never deletes places). Empty group has its own dashed card.
+  - Card back: "Groups" pills + dashed "+ group" open the same picker (tags removed). On very narrow cards (<240 px) the pills scroll sideways in one row.
+  - Data: IndexedDB v2 adds a `groups` store; places keep `groups: [ids]`. Supabase migration add_groups: `groups` table (owner-only rules) + `places.group_ids uuid[]`. Sync pushes groups before places, newest change wins. Old tags are ignored and cleared on next upload. Tested: privacy (another user sees nothing), old-phone upgrade, 320–430 px widths.
 - Retake cross visibility (17 Nov): it disappeared on dark photos. Now a near-solid dark circle (rgba 28,28,28,0.86) with a thin light ring (white 28%) and a soft background blur, so it reads on dark and bright photos alike.
 - Preview (14 Nov): Retake is now a cross on the photo's top-left corner (44 px, see-through black circle, white cross) so it can't be hit by the thumb by mistake; tags (+ tag) moved into the bottom bar on the left, next to the 88 px Save on the right; title has the full width again.
 - Preview option D tried and reverted (14 Nov): back to the same-size 88 px cross + Save circles with tags beside the title.
@@ -38,7 +43,7 @@ Live app: https://placeholder-three-flax.vercel.app (Vercel deploys every push t
 2. Step 6: polish, then run the web-design-guidelines skill review.
 
 ## Parked
-- Auto tags (11 Nov 2026: decided manual tags only for now). When picked up: Supabase Edge Function calls an AI vision API (Claude Haiku recommended), key in Supabase secrets, signed-in users only, photo shrunk to ~512 px, 6 s timeout; suggestions show as dashed chips on the preview, hidden when offline/signed out.
+- Auto tags: dropped (17 Nov 2026). Tags were replaced by groups; suggesting groups from the photo could come back as an idea later.
 
 ## Known small things
 - Photos are captured square; the Places card is 3:4, so edges are cropped a little.

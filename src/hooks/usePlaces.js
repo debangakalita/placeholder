@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { clearPlaces, getAllPlaces, keepStorage, newId, putPlace } from '../lib/db.js'
+import { clearGroups, clearPlaces, getAllGroups, getAllPlaces, keepStorage, newId, putGroup, putPlace } from '../lib/db.js'
 import { areaName } from '../lib/geo.js'
 
 export function usePlaces() {
   const [places, setPlaces] = useState([])
+  const [groups, setGroups] = useState([])
+  const groupsRef = useRef([])
   const [ready, setReady] = useState(false)
   const [edits, setEdits] = useState(0) // goes up on every local change, so backup knows to run
   const placesRef = useRef([])
@@ -14,12 +16,22 @@ export function usePlaces() {
     setPlaces(list)
   }, [])
 
-  // Places marked deleted are kept only until the cloud hears about it; never show them.
+  const commitGroups = useCallback((list) => {
+    groupsRef.current = list
+    setGroups(list)
+  }, [])
+
+  // Things marked deleted are kept only until the cloud hears about it; never show them.
   const reload = useCallback(
-    () => getAllPlaces()
-      .then((list) => { const shown = list.filter((p) => !p.deleted); commit(shown); return shown })
+    () => Promise.all([getAllPlaces(), getAllGroups()])
+      .then(([list, gs]) => {
+        commitGroups(gs.filter((g) => !g.deleted))
+        const shown = list.filter((p) => !p.deleted)
+        commit(shown)
+        return shown
+      })
       .catch(() => []),
-    [commit]
+    [commit, commitGroups]
   )
 
   const save = useCallback(async (place) => {
@@ -84,7 +96,7 @@ export function usePlaces() {
         photoPath: null,
         title: '',
         note: '',
-        tags: [],
+        groups: [],
         lat: null,
         lng: null,
         accuracy: null,
@@ -100,11 +112,52 @@ export function usePlaces() {
     [commit, save]
   )
 
+  // --- Groups
+  // Make a group (or return the one that already has this name, ignoring capitals).
+  const addGroup = useCallback(async (rawName) => {
+    const name = rawName.trim().slice(0, 40)
+    if (!name) return null
+    const same = groupsRef.current.find((g) => g.name.toLowerCase() === name.toLowerCase())
+    if (same) return same
+    const now = Date.now()
+    const group = { id: newId(), name, createdAt: now, updatedAt: now, synced: false, deleted: false }
+    commitGroups([...groupsRef.current, group])
+    await putGroup(group)
+    setEdits((n) => n + 1)
+    return group
+  }, [commitGroups])
+
+  const renameGroup = useCallback(async (id, rawName) => {
+    const name = rawName.trim().slice(0, 40)
+    const cur = groupsRef.current.find((g) => g.id === id)
+    if (!cur || !name || name === cur.name) return
+    const next = { ...cur, name, updatedAt: Date.now(), synced: false }
+    commitGroups(groupsRef.current.map((g) => (g.id === id ? next : g)))
+    await putGroup(next)
+    setEdits((n) => n + 1)
+  }, [commitGroups])
+
+  // Deleting a group never deletes its places; they just leave the group.
+  const removeGroup = useCallback(async (id) => {
+    const cur = groupsRef.current.find((g) => g.id === id)
+    if (!cur) return
+    commitGroups(groupsRef.current.filter((g) => g.id !== id))
+    await putGroup({ ...cur, deleted: true, synced: false, updatedAt: Date.now() })
+    for (const p of placesRef.current) {
+      if (p.groups?.includes(id)) await update(p.id, { groups: p.groups.filter((g) => g !== id) })
+    }
+    setEdits((n) => n + 1)
+  }, [commitGroups, update])
+
   // Used when signing out: this phone forgets everything (the cloud keeps it).
   const forgetAll = useCallback(async () => {
-    await clearPlaces()
+    await Promise.all([clearPlaces(), clearGroups()])
     commit([])
-  }, [commit])
+    commitGroups([])
+  }, [commit, commitGroups])
 
-  return { places, ready, edits, add, update, remove, reload, forgetAll }
+  return {
+    places, groups, ready, edits, add, update, remove, reload, forgetAll,
+    addGroup, renameGroup, removeGroup,
+  }
 }

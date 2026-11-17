@@ -16,7 +16,10 @@ export default function App() {
   // GPS starts the moment the app opens (rule from CLAUDE.md),
   // so a fix is usually ready by the time a photo is taken.
   const location = useLocation()
-  const { places, edits, add, update, remove, reload, forgetAll } = usePlaces()
+  const {
+    places, groups, edits, add, update, remove, reload, forgetAll,
+    addGroup, renameGroup, removeGroup,
+  } = usePlaces()
   const auth = useAuth()
   const sync = useSync({ user: auth.user, edits, reload })
 
@@ -52,10 +55,10 @@ export default function App() {
     await add({ kind: 'pin', lat: c.lat, lng: c.lng, accuracy: c.accuracy })
   }
 
-  const onSave = async ({ title, note, tags, area }) => {
+  const onSave = async ({ title, note, groups: groupIds, area }) => {
     const c = shot.coords
     const place = await add({
-      kind: 'photo', photo: shot.photo, title, note, tags, area,
+      kind: 'photo', photo: shot.photo, title, note, groups: groupIds, area,
       lat: c?.lat ?? null, lng: c?.lng ?? null, accuracy: c?.accuracy ?? null,
     })
     setSavedPlace(place)
@@ -132,6 +135,10 @@ export default function App() {
       >
         <PlacesScreen
           places={places}
+          groups={groups}
+          onCreateGroup={addGroup}
+          onRenameGroup={renameGroup}
+          onRemoveGroup={removeGroup}
           active={placesOpen}
           coords={location.coords}
           account={account}
@@ -143,7 +150,15 @@ export default function App() {
 
       {step === 'preview' && shot && (
         <div className="overlay">
-          <PreviewScreen photo={shot.photo} coords={shot.coords} onRetake={backToCamera} onSave={onSave} />
+          <PreviewScreen
+            photo={shot.photo}
+            coords={shot.coords}
+            groups={groups}
+            places={places}
+            onCreateGroup={addGroup}
+            onRetake={backToCamera}
+            onSave={onSave}
+          />
         </div>
       )}
       {step === 'saved' && (

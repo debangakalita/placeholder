@@ -13,10 +13,11 @@ This doc is the rulebook for the project. Give it to Claude or Cursor at the sta
 **V1 does:**
 
 - Opens directly into the camera. No home screen, no cards.
-- Photo flow: take a photo, then the preview shows it with optional title, note and tags, then Save or Retake. Location is saved automatically.
+- Photo flow: take a photo, then the preview shows it with optional title, note and groups, then Save or Retake (the cross on the photo's corner). Location is saved automatically.
 - Pin only: one button saves the current location without a photo, for awkward places where taking a photo is hard.
-- Swipe up (or tap the "places" pill at the top) to open the Places viewer: one big photo at a time with its title and area, and a filmstrip of all places below. The map view opens from the map icon in its top bar; the "…" menu has Grid view (all places, three per row), Directions (opens Google Maps directions to the place) and Delete place.
-- Details are always optional. Add them on the preview, or later by tapping a photo in Places: the card flips and you edit title, note and tags on its back. Tags are typed by hand. Auto tags suggested from the photo and the "must revisit" flag are parked for later.
+- Swipe up (or tap the "places" pill at the top) to open the Places viewer: one big photo at a time with its title and area, and a filmstrip of all places below. The map view opens from the map icon in its top bar; the "…" menu has Groups, Grid view (all places, three per row), Directions (opens Google Maps directions to the place) and Delete place.
+- Groups (like Pinterest boards): the user makes their own groups (none at first), e.g. "Cafes" or "Indiranagar". A place can be in several groups, or none (then it is only in All places). Pick groups with the "+" button on the preview (bottom left, opposite Save) or later from the back of the Places card; both open the same picker sheet (dashed "New group" row, tick list, Done). Picked groups show as pills. "…" → Groups lists them (two per row, latest photo as cover); opening one shows only its places in the same viewer, grid and map. A group can be renamed or deleted; deleting a group never deletes its places.
+- Details are always optional. Add them on the preview, or later by tapping a photo in Places: the card flips and you edit title, note and groups on its back. Tags were removed (groups replace them). The "must revisit" flag is parked for later.
 - Saves on the phone first and uploads when the internet is back.
 - Works on Android and iPhone as an installable web app. English only.
 
@@ -24,17 +25,17 @@ This doc is the rulebook for the project. Give it to Claude or Cursor at the sta
 
 - Share places, show other people's places, or have profiles
 - Send reminders or "you are near" notifications
-- Have collections, trips, or voice notes
+- Have trips or voice notes
 - Ship to the App Store or Play Store (maybe later)
 
 ## Design rules
 
 Minimal and quiet. Inspiration: Locket for the camera, Notion for everything else. When in doubt, remove something.
 
-- Every screen is true black, like a real camera app. No white screens anywhere. In text, the title always leads: big and bold; note, tags and places are smaller and grey.
+- Every screen is true black, like a real camera app. No white screens anywhere. In text, the title always leads: big and bold; note, groups and places are smaller and grey.
 - Gojek green is the only accent colour. Use it for the shutter ring, the Save button and small highlights only.
 - Text on green is black, never white (white on this green is too hard to read).
-- The signature idea, from the name: anything not filled in yet (a Pin only place, a suggested tag, an empty grid) is a dashed placeholder box, and it turns solid once filled. No shadows, gradients, emoji or decorative shapes.
+- The signature idea, from the name: anything not filled in yet (a Pin only place, "New group", an unticked group, an empty grid) is a dashed placeholder box, and it turns solid once filled. No shadows, gradients, emoji or decorative shapes.
 - Main buttons sit at the bottom of the screen, within thumb reach, because it is used one-handed while walking.
 - Every tap target is at least 44 px.
 
@@ -45,7 +46,7 @@ Minimal and quiet. Inspiration: Locket for the camera, Notion for everything els
 | Accent | #00AA13 (Gojek green) | Shutter ring, Save button, location pin, small dots. Text on it is black |
 | Background | #000000 | Every screen |
 | Dark surface | #1C1C1C | Buttons, menus, the "24 places" pill |
-| Raised surface | #2A2A2A | Tags, filled chips |
+| Raised surface | #2A2A2A | Group pills, filled chips |
 | Flip card back | #161616 with #2A2A2A border | Back of the Places card |
 | Text | #FFFFFF | Titles and main text |
 | Soft text | #D0D0D0 | Notes |
@@ -55,7 +56,7 @@ Minimal and quiet. Inspiration: Locket for the camera, Notion for everything els
 | Font | Bricolage Grotesque (400 to 700) | All text (except the logo) |
 | Logo | Lowercase "placeholder" in Fredoka SemiBold, the "o" is the green spot (green circle with a small black dot, top-right). App icon = the spot alone on black | Camera top bar (21 px tall), app icon, favicon. Drawn as vector shapes (src/components/Logo.jsx, public/logo.svg), so no extra font loads |
 | Sizes | Title 30 to 32 bold, place title 24 bold, note 16, small 13 to 15 | Title always leads |
-| Corners | 36 camera view, 28 photo and cards, 10 filmstrip, pill tags, round buttons | A different radius per level |
+| Corners | 36 camera view, 28 photo, cards and sheets, 22 group covers, 10 filmstrip and small thumbnails, pill group chips, round buttons | A different radius per level |
 | Spacing | 24 px screen edges on preview, 8 px between filmstrip items |  |
 | Icons | Simple line icons, 2 px stroke |  |
 
@@ -66,9 +67,10 @@ The approved direction is **D** on the [mockup canvas](https://claude.ai/artifac
 | Screen | Canvas name | What it does |
 | --- | --- | --- |
 | Camera | D · Camera | Opens here. Pin only on the left, shutter on the right, "places" pill at the top, or swipe up, opens Places |
-| Preview + details | D · Photo preview + details | The photo, then optional title (big), note and tags (small), then Retake or Save |
+| Preview + details | D · Photo preview + details | The photo (cross on its corner to retake), then optional title (big), note and group pills (small), then "+" (groups) and Save |
 | Saved | D · Saved | Photo shrinks into a pin, then back to camera |
-| Places | D · Places | One big photo with title and area, filmstrip below. Tap the photo to flip it and edit details on the back |
+| Places | D · Places | One big photo with title and area, filmstrip below. Tap the photo to flip it and edit details and groups on the back |
+| Groups | [Groups feature canvas](https://claude.ai/artifact/C8YmfWr5XeqSiPQwuFKqYE) | Picker sheet, Groups list (from "…"), one group in the Places viewer |
 | Places map | D · Places map | Dark map with photo pins, opened from the map icon |
 | Nothing saved yet | D · Places (nothing saved yet) | Empty dashed card with Open camera |
 
@@ -77,12 +79,12 @@ The approved direction is **D** on the [mockup canvas](https://claude.ai/artifac
 | Piece | Choice | What it is for |
 | --- | --- | --- |
 | App | React + Vite, installable web app (PWA) | The screens |
-| Database | Supabase | Place details and coordinates |
+| Database | Supabase | Place details, coordinates and groups (`places`, `groups` tables; each place keeps its `group_ids`) |
 | Photos | Supabase Storage | The images, shrunk on the phone before upload |
 | Sign-in | Supabase Auth, Google one-tap | Keeps photos and locations private |
 | Offline | IndexedDB on the phone | Saves places with no internet, uploads later |
 | Map | Leaflet + OpenStreetMap | Free map with photo pins |
-| Auto tags (parked) | AI vision API via a server function | Later: suggests tags; the key stays hidden |
+| Auto tags (dropped) | — | Tags were replaced by groups |
 | Hosting | Vercel (already set up) | Puts the app online |
 
 - Start reading GPS the moment the app opens, not when the photo is taken.
