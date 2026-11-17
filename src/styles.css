@@ -383,11 +383,15 @@ p { margin: 0; }
 /* Retake: a cross on the photo's top-left corner, dark see-through so it shows on any photo */
 .retake {
   position: absolute; left: 12px; top: 12px;
-  width: 44px; height: 44px; padding: 0; border: none; border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
+  width: 44px; height: 44px; padding: 0; border-radius: 50%;
+  /* dark glass + a thin light ring: stands out on dark photos (ring) and bright ones (dark fill) */
+  background: rgba(28, 28, 28, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   display: flex; align-items: center; justify-content: center;
 }
-.retake:active { background: rgba(0, 0, 0, 0.7); }
+.retake:active { background: rgba(28, 28, 28, 0.9); }
 .save-btn {
   flex-shrink: 0;
   width: 88px; height: 88px; border: none; border-radius: 50%;
