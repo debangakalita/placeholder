@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { haptic } from '../lib/haptics.js'
 import { PinIcon } from '../components/Icons.jsx'
 import GroupPicker from '../components/GroupPicker.jsx'
 import { useKeyboard } from '../hooks/useKeyboard.js'
@@ -15,7 +16,10 @@ export default function PreviewScreen({ photo, coords, groups, places, onCreateG
   const keyboard = useKeyboard()
 
   const url = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo])
-  useEffect(() => () => url && URL.revokeObjectURL(url), [url])
+  // On save the photo URL is handed to the Saved screen (same image, no reload flash).
+  const handedOff = useRef(false)
+  useEffect(() => () => { if (url && !handedOff.current) URL.revokeObjectURL(url) }, [url])
+  const photoRef = useRef(null)
 
   useEffect(() => {
     let alive = true
@@ -26,7 +30,10 @@ export default function PreviewScreen({ photo, coords, groups, places, onCreateG
   const save = async () => {
     if (saving) return
     setSaving(true)
-    await onSave({ title: title.trim(), note: note.trim(), groups: picked, area })
+    haptic('medium')
+    const fromRect = photoRef.current?.getBoundingClientRect()
+    handedOff.current = true
+    await onSave({ title: title.trim(), note: note.trim(), groups: picked, area, fromRect, photoUrl: url })
   }
 
   const chosen = groupNames(picked, groups)
@@ -34,11 +41,11 @@ export default function PreviewScreen({ photo, coords, groups, places, onCreateG
 
   return (
     <main
-      className={`preview${keyboard.open ? ' preview--typing' : ''}`}
+      className={`preview${keyboard.open ? ' preview--typing' : ''}${saving ? ' preview--saving' : ''}`}
       style={keyboard.open && keyboard.height ? { height: `${keyboard.height}px` } : undefined}
     >
       <div className="preview__media">
-        <div className="preview__photo" style={url ? { backgroundImage: `url(${url})` } : undefined} role="img" aria-label="Your photo" />
+        <div className="preview__photo" ref={photoRef} style={url ? { backgroundImage: `url(${url})` } : undefined} role="img" aria-label="Your photo" />
         <button type="button" className="retake" onClick={onRetake} aria-label="Retake">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.2"
             strokeLinecap="round" aria-hidden="true">

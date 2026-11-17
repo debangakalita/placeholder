@@ -36,6 +36,9 @@ export default function App() {
   const [step, setStep] = useState(null)
   const [shot, setShot] = useState(null) // { photo, coords } while previewing
   const [savedPlace, setSavedPlace] = useState(null)
+  const [savedAnim, setSavedAnim] = useState(null) // { fromRect, photoUrl } for the save animation
+  const [arrived, setArrived] = useState(false) // the pin has reached the places pill
+  const [tick, setTick] = useState(0) // bumps to pulse the places pill
 
   // Places slides up from the bottom over the camera. The camera stays running underneath,
   // so coming back to it is instant.
@@ -55,13 +58,15 @@ export default function App() {
     await add({ kind: 'pin', lat: c.lat, lng: c.lng, accuracy: c.accuracy })
   }
 
-  const onSave = async ({ title, note, groups: groupIds, area }) => {
+  const onSave = async ({ title, note, groups: groupIds, area, fromRect, photoUrl }) => {
     const c = shot.coords
     const place = await add({
       kind: 'photo', photo: shot.photo, title, note, groups: groupIds, area,
       lat: c?.lat ?? null, lng: c?.lng ?? null, accuracy: c?.accuracy ?? null,
     })
     setSavedPlace(place)
+    setSavedAnim({ fromRect, photoUrl })
+    setArrived(false)
     setStep('saved')
   }
 
@@ -69,6 +74,12 @@ export default function App() {
     setStep(null)
     setShot(null)
     setSavedPlace(null)
+    setSavedAnim(null)
+  }, [])
+
+  const onArrive = useCallback(() => {
+    setArrived(true)
+    setTick((t) => t + 1)
   }, [])
 
   const onTouchStart = (e) => {
@@ -120,7 +131,8 @@ export default function App() {
       <div aria-hidden={placesOpen} inert={placesOpen || step !== null ? true : undefined}>
         <CameraScreen
           location={location}
-          placesCount={places.length}
+          placesCount={step === 'saved' && !arrived ? Math.max(0, places.length - 1) : places.length}
+          tick={tick}
           onOpenPlaces={() => setPlacesOpen(true)}
           onPhoto={onPhoto}
           onPin={onPin}
@@ -162,8 +174,9 @@ export default function App() {
         </div>
       )}
       {step === 'saved' && (
-        <div className="overlay">
-          <SavedScreen place={savedPlace} onDone={backToCamera} />
+        <div className="overlay overlay--clear">
+          <SavedScreen place={savedPlace} photoUrl={savedAnim?.photoUrl} fromRect={savedAnim?.fromRect}
+            onArrive={onArrive} onDone={backToCamera} />
         </div>
       )}
     </div>
