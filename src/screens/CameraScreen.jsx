@@ -26,24 +26,11 @@ function locationLine(location) {
   return 'Still finding your location'
 }
 
-export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, tick = 0, onPhoto, onPin }) {
+export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, onPhoto, onPin }) {
   const { videoRef, status, retry, capture } = useCamera()
   const [toast, setToast] = useState(null)
   const [flash, setFlash] = useState(false)
   const toastTimer = useRef(null)
-
-  // When a saved photo flies into the places pill: the pill pulses and the new count rolls in.
-  // Only after a photo save (tick), so Pin only stays as it is.
-  const pillRef = useRef(null)
-  const dotRef = useRef(null)
-  const countRef = useRef(null)
-  useEffect(() => {
-    if (!tick || matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const ease = 'cubic-bezier(0.23, 1, 0.32, 1)'
-    pillRef.current?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 360, easing: ease })
-    dotRef.current?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.8)' }, { transform: 'scale(1)' }], { duration: 360, easing: ease })
-    countRef.current?.animate([{ transform: 'translateY(100%)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 260, easing: ease })
-  }, [tick])
 
   useEffect(() => () => clearTimeout(toastTimer.current), [])
 
@@ -78,11 +65,9 @@ export default function CameraScreen({ location, onOpenPlaces, placesCount = 0, 
     <main className="cam">
       <header className="cam__top">
         <h1 className="wordmark"><Logo height={21} /></h1>
-        <button type="button" className="pill" ref={pillRef} data-places-pill onClick={onOpenPlaces}
+        <button type="button" className="pill" onClick={onOpenPlaces}
           aria-label={`Open places, ${placesCount} saved`}>
-          <span className="dot" ref={dotRef} aria-hidden="true" />
-          <span className="pill__count"><span key={tick} ref={countRef}>{placesCount}</span></span>
-          {placesCount === 1 ? 'place' : 'places'}
+          <span className="dot" aria-hidden="true" />{placesCount} {placesCount === 1 ? 'place' : 'places'}
         </button>
       </header>
 
